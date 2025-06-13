@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container mt-4">
+    <h2>Welcome to Skopje Transport App</h2>
+    {% if user.is_authenticated %}
+      <p>You are logged in as: <strong>{{ user.username }}</strong></p>
+      <p>Your role: {{ user.is_driver|yesno:"Driver,Passenger" }}</p>
+    {% else %}
+      <p><a href="{% url 'accounts:login' %}">Login</a> or <a href="{% url 'accounts:register' %}">Register</a> to continue.</p>
+    {% endif %}
+  </div>
+{% endblock %}
