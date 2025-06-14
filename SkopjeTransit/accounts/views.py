@@ -48,8 +48,7 @@ def switch_role(request):
 
     profile.save()
     request.user.switch_role()
-    # return redirect('accounts:profile')
-    return redirect('core:home')
+    return redirect('core:home_view')
 
 
 

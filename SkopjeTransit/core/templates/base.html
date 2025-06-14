@@ -46,6 +46,7 @@
     </style>
 </head>
 <body>
+
 {% if user.is_authenticated %}
     Hello, {{ user.username }} |
     <a href="{% url 'accounts:switch_role' %}">Switch Role</a> |
@@ -54,6 +55,11 @@
 {% else %}
     <a href="{% url 'accounts:login' %}">Login</a> |
     <a href="{% url 'accounts:register' %}">Register</a>
+{% endif %}
+{% if request.user.is_authenticated and request.user.profile.role == 'driver' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'rides:create' %}">Offer a Ride</a>
+    </li>
 {% endif %}
 <div class="container mt-4">
     {% block content %}{% endblock %}

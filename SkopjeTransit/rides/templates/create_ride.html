@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Offer a New Ride</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success w-100">Create Ride</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

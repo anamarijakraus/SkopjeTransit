@@ -1,12 +1,32 @@
 {% extends 'base.html' %}
 {% block content %}
-  <div class="container mt-4">
-    <h2>Welcome to Skopje Transport App</h2>
-    {% if user.is_authenticated %}
-      <p>You are logged in as: <strong>{{ user.username }}</strong></p>
-      <p>Your role: {{ user.is_driver|yesno:"Driver,Passenger" }}</p>
-    {% else %}
-      <p><a href="{% url 'accounts:login' %}">Login</a> or <a href="{% url 'accounts:register' %}">Register</a> to continue.</p>
-    {% endif %}
-  </div>
+    <div class="container mt-4">
+        <h2>Welcome to Skopje Transport App</h2>
+        {% if user.is_authenticated %}
+            <p>You are logged in as: <strong>{{ user.username }}</strong></p>
+            <p>Your role: {{ user.is_driver|yesno:"Driver,Passenger" }}</p>
+            <div class="container mt-5">
+                <h2 class="mb-4 text-center">Available Rides</h2>
+                <div class="row">
+                    {% for ride in rides %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-3 shadow-sm">
+                                <h5>{{ ride.start_location }} → {{ ride.end_location }}</h5>
+                                <p>Departure: {{ ride.departure_time }}</p>
+                                <p>Seats Left: {{ ride.available_seats }}</p>
+                                <p>Price: {{ ride.seat_price }} ден</p>
+                                {% if user.is_authenticated and user.profile.role == 'passenger' %}
+                                    <a href="{% url 'rides:book' ride.id %}" class="btn btn-success">Book Now</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% else %}
+            <p><a href="{% url 'accounts:login' %}">Login</a> or <a href="{% url 'accounts:register' %}">Register</a> to
+                continue.</p>
+        {% endif %}
+    </div>
 {% endblock %}

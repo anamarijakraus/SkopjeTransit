@@ -11,8 +11,8 @@
                     {% for booking in bookings %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>From:</strong> {{ booking.ride.origin }}
-                                <strong>To:</strong> {{ booking.ride.destination }}<br>
+                                <strong>From:</strong> {{ booking.ride.start_location }}
+                                <strong>To:</strong> {{ booking.ride.end_location }}<br>
                                 <small><strong>Driver:</strong> {{ booking.ride.driver.username }} | <strong>Stop:</strong> {{ booking.stop }}</small>
                             </div>
                             <div>
@@ -34,8 +34,8 @@
                     {% for ride in rides %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>From:</strong> {{ ride.origin }}
-                                <strong>To:</strong> {{ ride.destination }}<br>
+                                <strong>From:</strong> {{ ride.start_location }}
+                                <strong>To:</strong> {{ ride.end_location }}<br>
                                 <small><strong>Price per Seat:</strong> {{ ride.seat_price }} | <strong>Available:</strong> {{ ride.available_seats }}</small>
                             </div>
                             <div>

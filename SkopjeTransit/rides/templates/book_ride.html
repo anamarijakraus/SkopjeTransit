@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Book Ride</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <p><strong>From:</strong> {{ ride.start_location }}</p>
+            <p><strong>To:</strong> {{ ride.end_location }}</p>
+            <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
+            <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary w-100 mt-3">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
