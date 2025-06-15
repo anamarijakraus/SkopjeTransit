@@ -14,7 +14,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('core:home')
+            return redirect('core:home_view')
     else:
         form = CustomUserCreationForm()
     return render(request, 'register.html', {'form': form})
@@ -27,7 +27,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            return redirect('core:home')
+            return redirect('core:home_view')
         else:
             return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')

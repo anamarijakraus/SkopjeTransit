@@ -5,23 +5,38 @@
         {% if user.is_authenticated %}
             <p>You are logged in as: <strong>{{ user.username }}</strong></p>
             <p>Your role: {{ user.is_driver|yesno:"Driver,Passenger" }}</p>
+
             <div class="container mt-5">
-                <h2 class="mb-4 text-center">Available Rides</h2>
-                <div class="row">
-                    {% for ride in rides %}
-                        <div class="col-md-6 mb-4">
-                            <div class="card p-3 shadow-sm">
-                                <h5>{{ ride.start_location }} → {{ ride.end_location }}</h5>
-                                <p>Departure: {{ ride.departure_time }}</p>
-                                <p>Seats Left: {{ ride.available_seats }}</p>
-                                <p>Price: {{ ride.seat_price }} ден</p>
-                                {% if user.is_authenticated and user.profile.role == 'passenger' %}
-                                    <a href="{% url 'rides:book' ride.id %}" class="btn btn-success">Book Now</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
+                <h2 class="text-center mb-4">Find a Ride</h2>
+                <form method="POST" class="p-4 shadow rounded" style="background-color: #A3B18A;">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="start_location" class="form-label">Pickup Spot</label>
+                        <select name="start_location" id="start_location" class="form-select" required>
+                            {% for stop in stops %}
+                                <option value="{{ stop.name }}">{{ stop.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_location" class="form-label">Dropoff Spot</label>
+                        <select name="end_location" id="end_location" class="form-select" required>
+                            {% for stop in stops %}
+                                <option value="{{ stop.name }}">{{ stop.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departure_time" class="form-label">Departure Time</label>
+                        <input type="datetime-local" name="departure_time" id="departure_time" class="form-control"
+                               required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="seats" class="form-label">Seats</label>
+                        <input type="number" name="seats" id="seats" class="form-control" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Search</button>
+                </form>
             </div>
 
         {% else %}

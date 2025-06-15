@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Available Rides</h2>
+    <p class="text-center">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong> after {{ departure_time }}</p>
+
+    {% if rides %}
+        {% for ride in rides %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ ride.driver.username }}'s Ride</h5>
+                    <p><strong>From:</strong> {{ ride.start_location }}</p>
+                    <p><strong>To:</strong> {{ ride.end_location }}</p>
+                    <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
+                    <p><strong>Seats Left:</strong> {{ ride.available_seats }}</p>
+                    <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>
+                    <a href="{% url 'rides:book' ride.id %}" class="btn btn-success">Book</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-center">No available car rides match your search.</p>
+    {% endif %}
+
+    <!-- JSP Bus results will go here later -->
+</div>
+{% endblock %}
