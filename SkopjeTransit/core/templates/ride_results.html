@@ -1,5 +1,124 @@
+{#{% extends 'base.html' %}#}
+{#{% block content %}#}
+{#    <div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">#}
+{#        <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; overflow-y: auto; max-height: 80vh;">#}
+{#            <h2 class="mb-4 text-center">Available Rides</h2>#}
+{#            <p class="text-center">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong>#}
+{#                after {{ departure_time }}</p>#}
+{##}
+{#            {% if rides %}#}
+{#                {% for ride in rides %}#}
+{#                    <div class="card mb-3">#}
+{#                        <div class="card-body">#}
+{#                            <h5 class="card-title">{{ ride.driver.username }}'s Ride</h5>#}
+{#                            <p><strong>From:</strong> {{ ride.start_location }}</p>#}
+{#                            <p><strong>To:</strong> {{ ride.end_location }}</p>#}
+{#                            <p><strong>Departure:</strong> {{ ride.departure_time }}</p>#}
+{#                            <p><strong>Seats Left:</strong> {{ ride.available_seats }}</p>#}
+{#                            <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>#}
+{#                            <form action="{% url 'rides:book' ride.id %}" method="get" style="display:inline;">#}
+{#                                <button type="submit"#}
+{#                                        style="background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;"#}
+{#                                        onmouseover="this.style.background='#ff9a5a'"#}
+{#                                        onmouseout="this.style.background='#ff7f32'">Book#}
+{#                                </button>#}
+{#                            </form>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endfor %}#}
+{#            {% else %}#}
+{#                <p class="text-center">No available car rides match your search.</p>#}
+{#            {% endif %}#}
+{##}
+{#            <!-- JSP Bus results -->#}
+{#            <hr class="my-4">#}
+{##}
+{#            <h3 class="text-center">JSP Bus Options</h3>#}
+{##}
+{#            {% if buses %}#}
+{#                {% for option in buses %}#}
+{#                    <div class="card mb-3 border-info">#}
+{#                        <div class="card-body">#}
+{#                            <h3 class="card-title">{{ option.bus.name }}</h3>#}
+{#                            <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name }}">View#}
+{#                                stops#}
+{#                            </button>#}
+{#                            <p><strong>From:</strong> {{ option.start }}</p>#}
+                            {#                        <p><strong>To:</strong> {{ option.end }}</p>#}
+{#                            <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>#}
+                            {#                        <p><strong>Departs At:</strong> {{ option.start_time }}</p>#}
+{#                        </div>#}
+{#                        <hr style="width: 50%; margin: 0.25rem auto;">#}
+{#                    </div>#}
+{#                {% endfor %}#}
+{#            {% else %}#}
+{#                <p class="text-center">No available buses match your search.</p>#}
+{#            {% endif %}#}
+{##}
+{##}
+{#            <!-- Map Modal -->#}
+{#            <div id="mapModal"#}
+{#                 style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">#}
+{#                <div style="position:relative; width:90vw; height:90vh; background:#fff; border-radius:10px; overflow:hidden;">#}
+{#                    <button onclick="closeMapModal()" style="position:absolute; top:10px; right:10px; z-index:1001;">#}
+{#                        Close#}
+{#                    </button>#}
+{#                    <div id="map" style="width:100%; height:100%;"></div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{##}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}
+
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    .view-stops-btn {
+        background: #ff7f32 !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 1.5rem !important;
+        font-weight: 600 !important;
+        font-family: 'Inter', sans-serif !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 2px 8px rgba(255, 127, 50, 0.2) !important;
+    }
+    
+    .view-stops-btn:hover {
+        background: #ff9a5a !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(255, 127, 50, 0.3) !important;
+    }
+    
+    .map-title {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        z-index: 1001;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+        color: #1a1a2e;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+        #mapModal {
+            padding: 10px !important;
+        }
+        
+        #mapModal > div {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            border-radius: 10px !important;
+        }
+    }
+</style>
 <div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
     <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; overflow-y: auto; max-height: 80vh;">
         <h2 class="mb-4 text-center">Available Rides</h2>
@@ -26,26 +145,119 @@
             <p class="text-center">No available car rides match your search.</p>
         {% endif %}
 
- <!-- JSP Bus results -->
+        <!-- JSP Bus results -->
         <hr class="my-4">
-
         <h3 class="text-center">JSP Bus Options</h3>
 
         {% if buses %}
             {% for option in buses %}
                 <div class="card mb-3 border-info">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ option.bus.name }}</h5>
-                        <p><strong>From:</strong> {{ option.start }}</p>
-{#                        <p><strong>To:</strong> {{ option.end }}</p>#}
-                        <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>
-{#                        <p><strong>Departs At:</strong> {{ option.start_time }}</p>#}
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title">Bus {{ option.bus.name }}</h3>
+                            <p><strong>From:</strong> {{ option.start }}</p>
+                            <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>
+                        </div>
+                        <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name|slice:'5:' }}">View stops</button>
                     </div>
+                    <hr style="width: 50%; margin: 0.25rem auto;">
                 </div>
             {% endfor %}
         {% else %}
             <p class="text-center">No available buses match your search.</p>
         {% endif %}
+
     </div>
 </div>
+
+<!-- MAP MODAL -->
+<div id="mapModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; padding:20px; box-sizing:border-box;">
+    <div style="position:relative; width:100%; max-width:800px; height:100%; max-height:600px; background:#fff; border-radius:15px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+        <div class="map-title" id="mapTitle">Bus Route</div>
+        <div style="position:absolute; top:15px; right:15px; z-index:1001; display:flex; gap:10px;">
+            <button onclick="closeMapModal()" style="background:#ff7f32; color:#fff; border:none; padding:0.75rem 1.5rem; border-radius:8px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; box-shadow:0 2px 8px rgba(255,127,50,0.3); transition:all 0.2s;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Close</button>
+        </div>
+        <div id="map" style="width:100%; height:100%;"></div>
+    </div>
+</div>
+
+<!-- LEAFLET CSS + JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- MAP SCRIPT -->
+<script>
+    const STOP_COORDINATES = {{ stop_coordinates_json|safe }};
+    const BUS_STOPS = {{ bus_stops_json|safe }};
+    
+    // Temporary mapping for old bus names to new ones
+    const BUS_NAME_MAPPING = {
+        '2': '2',
+        '4': '4', 
+        '7': '7',
+        '15': '15',
+        '19': '19',
+        '22': '22',
+        '24': '24',
+        '60': '60'
+    };
+
+    function closeMapModal() {
+        document.getElementById("mapModal").style.display = "none";
+        if (window.map) {
+            window.map.remove();
+        }
+    }
+
+    document.querySelectorAll('.view-stops-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const busNumber = btn.dataset.bus;
+            console.log('Bus number:', busNumber);
+            console.log('Available bus stops keys:', Object.keys(BUS_STOPS));
+            console.log('Looking for stops for bus:', busNumber);
+            
+            // Try to get stops using the mapping
+            const mappedBusNumber = BUS_NAME_MAPPING[busNumber] || busNumber;
+            const stops = BUS_STOPS[mappedBusNumber];
+            
+            if (!stops) {
+                alert("No stops found for this bus. Bus number: " + busNumber + "\nAvailable buses: " + Object.keys(BUS_STOPS).join(', '));
+                return;
+            }
+
+            // Set modal title
+            document.getElementById("mapTitle").textContent = `Bus ${busNumber} Route`;
+            document.getElementById("mapModal").style.display = "flex";
+
+            // Initialize map
+            const map = L.map('map');
+            window.map = map;
+
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Create markers for all stops
+            const markers = [];
+            stops.forEach((stopName, index) => {
+                const coords = STOP_COORDINATES[stopName];
+                if (coords) {
+                    const marker = L.marker(coords).addTo(map);
+                    marker.bindPopup(`<b>${index + 1}. ${stopName}</b>`);
+                    markers.push(marker);
+                }
+            });
+
+            // Fit map to show all markers
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            } else {
+                // Fallback to Skopje center if no markers
+                map.setView([41.9981, 21.4254], 13);
+            }
+        });
+    });
+</script>
 {% endblock %}

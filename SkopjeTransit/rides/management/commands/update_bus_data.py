@@ -1,14 +1,19 @@
 from django.core.management.base import BaseCommand
+from rides.models import Bus, Stop, BusSchedule
 from datetime import datetime, time, timedelta, date
-
-from rides.models import Bus, Stop, BusSchedule  # Make sure this imports your actual models
 
 
 class Command(BaseCommand):
-    help = 'Generates 24/7 bus schedules for all routes'
+    help = 'Clear old bus data and recreate with new stops from views.py'
 
     def handle(self, *args, **options):
-        # Define all bus lines with their exact stops (updated to match views.py)
+        # Clear all existing data
+        self.stdout.write('Clearing existing bus data...')
+        BusSchedule.objects.all().delete()
+        Bus.objects.all().delete()
+        Stop.objects.all().delete()
+        
+        # Define all bus lines with their exact stops (matching views.py)
         bus_lines = {
             '2': [
                 "Gjorce Petrov Cinema", "Gjorce Petrov Old Market", "Vlae Porta", "Vlae", "Dolno Nerezi",
@@ -100,4 +105,4 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS(f'Created schedule for Bus {line_number} with {stops_count} stops'))
 
-        self.stdout.write(self.style.SUCCESS('All bus schedules created successfully!'))
+        self.stdout.write(self.style.SUCCESS('All bus schedules updated successfully with new stops!')) 
