@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rides.models import Ride, Stop, Bus, BusSchedule
-from datetime import datetime
+from datetime import datetime, time
 from django.utils import timezone
 
 
@@ -11,7 +11,7 @@ def home_view(request):
         start = request.POST.get('start_location')
         end = request.POST.get('end_location')
         time_str = request.POST.get('departure_time')
-        time = datetime.strptime(time_str, "%Y-%m-%dT%H:%M")
+        departure_datetime = datetime.strptime(time_str, "%Y-%m-%dT%H:%M")
 
         try:
             seats_requested = int(request.POST.get('seats', '1'))
@@ -22,7 +22,7 @@ def home_view(request):
 
         # Initial filter: only future rides with enough seats
         rides = Ride.objects.filter(
-            departure_time__gte=time,
+            departure_time__gte=departure_datetime,
             available_seats__gte=seats_requested
         )
 
@@ -42,13 +42,25 @@ def home_view(request):
         # --- JSP Bus Matching ---
         buses_with_matching_route = []
 
-        requested_time = time.time()
+        # Convert requested time to time object for comparison
+        import time as time_module
+        requested_time_obj = time_module.time()
+        requested_hour = int(requested_time_obj // 3600) % 24
+        requested_minute = int((requested_time_obj % 3600) // 60)
+        requested_time_only = time(requested_hour, requested_minute)
 
+        print(f"DEBUG: Looking for buses from '{start}' after {requested_time_only}")
+        print(f"DEBUG: Total buses in database: {Bus.objects.count()}")
+        
         for bus in Bus.objects.all():
             schedules = BusSchedule.objects.filter(bus=bus).order_by('arrival_time')
-
+            print(f"DEBUG: Bus {bus.name} has {schedules.count()} schedules")
+            
             for schedule in schedules:
-                if schedule.stop.name == start and schedule.arrival_time >= requested_time:
+                print(f"DEBUG: Checking schedule - Stop: '{schedule.stop.name}', Time: {schedule.arrival_time}")
+                # Check if this stop matches the start location (case-insensitive)
+                if schedule.stop.name.lower() == start.lower() and schedule.arrival_time >= requested_time_only:
+                    print(f"DEBUG: MATCH FOUND! Bus {bus.name} at {schedule.stop.name}")
                     buses_with_matching_route.append({
                         'bus': bus,
                         'start_time': schedule.arrival_time,
@@ -56,6 +68,8 @@ def home_view(request):
                     })
                     break
 
+        print(f"DEBUG: Found {len(buses_with_matching_route)} matching buses")
+        
         # Sort buses by soonest start_time
         buses_with_matching_route = sorted(buses_with_matching_route, key=lambda b: b['start_time'])
 

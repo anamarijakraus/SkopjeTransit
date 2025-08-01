@@ -38,7 +38,7 @@ def setup_database():
     Bus.objects.all().delete()
     Stop.objects.all().delete()
     
-    # Step 3: Define new bus lines with their exact stops (matching views.py)
+    # Step 3: Define new bus lines with their exact stops (matching the specified order)
     bus_lines = {
         '2': [
             "Gjorce Petrov Cinema", "Gjorce Petrov Old Market", "Vlae Porta", "Vlae", "Dolno Nerezi",
@@ -53,7 +53,7 @@ def setup_database():
             "Zelen Pazar", "Bilna Apteka", "Cheshma Kisela Voda Maxi"
         ],
         '7': [
-            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Centar Record", "Zelen Pazar", "Jugodrvo Olympic Pool", 
             "Vero Jambo", "Intercity Bus", "Tobacco Factory", "Dimitar Vlahov Secondary School", 
@@ -92,16 +92,71 @@ def setup_database():
         ]
     }
     
-    # Step 4: Create all stops
+    # Step 4: Create all stops in the specified order
     print("📍 Creating stops...")
-    all_stops = set()
-    for stops in bus_lines.values():
-        all_stops.update(stops)
     
-    for stop_name in all_stops:
-        Stop.objects.get_or_create(name=stop_name)
+    # Create stops in the exact order specified
+    stops_to_create = [
+        Stop(name="Gjorce Petrov Polyclinic"),
+        Stop(name="Gjorce Petrov Cinema"),
+        Stop(name="Gjorce Petrov Old Market"),
+        Stop(name="Vlae Porta"),
+        Stop(name="Vlae"),
+        Stop(name="Dolno Nerezi"),
+        Stop(name="Skopje City Archives"),
+        Stop(name="Karposh 3 Gas Station"),
+        Stop(name="Bucharest Polyclinic"),
+        Stop(name="Taftalidze T"),
+        Stop(name="Taftalidze Market"),
+        Stop(name="Karposh 4 TC City Mall T"),
+        Stop(name="Restaurant Imes"),
+        Stop(name="Primary School Lazo Trpovski"),
+        Stop(name="Hospital 8mi Septemvri"),
+        Stop(name="Karposh 2"),
+        Stop(name="Mal Odmor"),
+        Stop(name="Bunjakovec Shopping Center"),
+        Stop(name="Bunjakovec Porta"),
+        Stop(name="Centar Record"),
+        Stop(name="Zelen Pazar"),
+        Stop(name="Kuzman Josifoski Pitu Primary School"),
+        Stop(name="Championche"),
+        Stop(name="Kisela Voda Przino"),
+        Stop(name="Home For The Blind"),
+        Stop(name="Krume Kepeski Primary School"),
+        Stop(name="Bilna Apteka"),
+        Stop(name="Cheshma Kisela Voda Maxi"),
+        Stop(name="Jugodrvo Olympic Pool"),
+        Stop(name="Vero Jambo"),
+        Stop(name="Railway Station"),
+        Stop(name="Intercity Bus"),
+        Stop(name="Tobacco Factory"),
+        Stop(name="Dimitar Vlahov Secondary School"),
+        Stop(name="Rade Koncar Petrol Station"),
+        Stop(name="Transporten Center T"),
+        Stop(name="TC Skopjanka"),
+        Stop(name="Aerodrom Tobacco 2"),
+        Stop(name="TC Tri Biseri"),
+        Stop(name="Posta Telecom"),
+        Stop(name="Most Goce Delchev Theater"),
+        Stop(name="National University Library"),
+        Stop(name="Bitpazar 1 University of St. Cyril and Methodius"),
+        Stop(name="Yaja Pasha Mosque"),
+        Stop(name="Chair"),
+        Stop(name="Chair Buildings"),
+        Stop(name="Chair Polyclinic"),
+        Stop(name="Church of St. Nicholas"),
+        Stop(name="Bitpazar 2 Shopping Center"),
+        Stop(name="Primary School Bitola Congress"),
+        Stop(name="Hotel Continental"),
+    ]
     
-    print(f"✅ Created {len(all_stops)} stops")
+    # Clear existing stops first
+    Stop.objects.all().delete()
+    
+    # Create stops in bulk
+    Stop.objects.bulk_create(stops_to_create)
+    
+    print(f"✅ Created {len(stops_to_create)} stops in the specified order")
     
     # Step 5: Create buses and schedules
     print("🚌 Creating buses and schedules...")
