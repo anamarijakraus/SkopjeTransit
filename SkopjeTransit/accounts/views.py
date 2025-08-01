@@ -43,12 +43,14 @@ def switch_role(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     if profile.role == 'driver':
         profile.role = 'passenger'
+        profile.save()
+        request.user.switch_role()
+        return redirect('core:home_view')
     else:
         profile.role = 'driver'
-
-    profile.save()
-    request.user.switch_role()
-    return redirect('core:home_view')
+        profile.save()
+        request.user.switch_role()
+        return redirect('rides:create')
 
 
 

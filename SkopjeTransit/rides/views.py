@@ -15,7 +15,7 @@ def create_ride(request):
     profile = request.user.profile
 
     if profile.role != 'driver':
-        return redirect('core:home')
+        return redirect('core:home_view')
 
     if request.method == 'POST':
         form = RideForm(request.POST)
@@ -35,7 +35,7 @@ def create_ride(request):
 def book_ride(request, ride_id):
     profile = request.user.profile
     if profile.role != 'passenger':
-        return redirect('core:home')
+        return redirect('core:home_view')
 
     ride = get_object_or_404(Ride, id=ride_id)
 

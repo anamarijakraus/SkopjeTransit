@@ -1,53 +1,57 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-5">
-    <div class="form-container">
-        <h2 class="text-center mb-4">Welcome, {{ request.user.username }}!</h2>
-
-        {% if user_type == 'passenger' %}
-            <h4 class="mb-3">Your Booked Rides</h4>
-            {% if bookings %}
-                <ul class="list-group">
-                    {% for booking in bookings %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>From:</strong> {{ booking.ride.start_location }}
-                                <strong>To:</strong> {{ booking.ride.end_location }}<br>
-                                <small><strong>Driver:</strong> {{ booking.ride.driver.username }} | <strong>Stop:</strong> {{ booking.stop }}</small>
-                            </div>
-                            <div>
-                                <span class="badge bg-success rounded-pill">{{ booking.ride.seat_price }} MKD</span><br>
-                                <small>{{ booking.created_at|date:"M d, Y H:i" }}</small>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No bookings yet.</p>
-            {% endif %}
-
-        {% elif user_type == 'driver' %}
-            <h4 class="mb-3">Your Offered Rides</h4>
-            <p><strong>Total Earnings:</strong> {{ total_earnings }} MKD</p>
-            {% if rides %}
-                <ul class="list-group">
-                    {% for ride in rides %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>From:</strong> {{ ride.start_location }}
-                                <strong>To:</strong> {{ ride.end_location }}<br>
-                                <small><strong>Price per Seat:</strong> {{ ride.seat_price }} | <strong>Available:</strong> {{ ride.available_seats }}</small>
-                            </div>
-                            <div>
-                                <small>{{ ride.departure_time|date:"M d, Y H:i" }}</small>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No rides offered yet.</p>
-            {% endif %}
+<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+  <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px;">
+    <h2 style="margin-bottom: 24px; text-align: center;">Welcome, {{ request.user.username }}!</h2>
+    {% if user_type == 'passenger' %}
+        <h4 class="mb-3">Your Booked Rides:</h4>
+        {% if bookings %}
+            <ul class="list-group">
+                {% for booking in bookings %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>From:</strong> {{ booking.ride.start_location }}
+                            <strong>To:</strong> {{ booking.ride.end_location }}<br>
+                            <strong>Driver:</strong> {{ booking.ride.driver.username }} <br> <strong>Stop:</strong> {{ booking.stop }}
+                        </div>
+                        <div>
+                            <span class="badge bg-success rounded-pill"><strong>Price:</strong>{{ booking.ride.seat_price }} MKD</span><br>
+                            <strong>Date:</strong><small>{{ booking.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                    </li>
+                    {% if not forloop.last %}
+                        <hr style="margin: 10px 0 10px 0; border-top: 2px solid #e0e0e0; border-radius: 1px;">
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No bookings yet.</p>
         {% endif %}
-    </div>
+    {% elif user_type == 'driver' %}
+        <h4 class="mb-3">Your Offered Rides:</h4>
+        <p><strong>Total Earnings:</strong> {{ total_earnings }} MKD</p>
+        {% if rides %}
+            <ul class="list-group">
+                {% for ride in rides %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>From:</strong> {{ ride.start_location }}
+                            <strong>To:</strong> {{ ride.end_location }}<br>
+                            <strong>Price per Seat:</strong> {{ ride.seat_price }} <br> <strong>Available:</strong> {{ ride.available_seats }}
+                        </div>
+                        <div>
+                          <strong>Date:</strong>  <small>{{ ride.departure_time|date:"M d, Y H:i" }}</small>
+                        </div>
+                    </li>
+                    {% if not forloop.last %}
+                        <hr style="margin: 10px 0 10px 0; border-top: 2px solid #e0e0e0; border-radius: 1px;">
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No rides offered yet.</p>
+        {% endif %}
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -2,76 +2,276 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Skopje Transport</title>
+    <title>Skopje Transit</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Open+Sans&display=swap"
-          rel="stylesheet">
-
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons (for star icons, etc.) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Django static -->
+    {% load static %}
     <style>
         body {
-            background-color: #A3B18A;
-            font-family: 'Open Sans', sans-serif;
-            color: #344E41;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: #F8FAFC;
+            color: #222;
         }
-
-        h2, .btn {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .form-container {
-            background-color: #DAD7CD;
-            padding: 2rem;
+        /* Centered Page Utility */
+        .centered-page {
+            min-height: 100vh;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 12px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
             border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+            overflow-y: auto;
+        }
+        @media (max-width: 600px) {
+            .centered-page {
+                max-width: 100%;
+                padding: 16px 4px;
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+        .navbar {
+            width: 100%;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 0;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 10;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .navbar-logo {
+            height: 44px;
+            width: auto;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .navbar-links a {
+            color: #222;
+            text-decoration: none;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05rem;
+            transition: color 0.2s;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+        }
+        .navbar-links a:hover {
+            color: #4F46E5;
+            background: #F1F5FF;
+        }
+        .navbar-right-img {
+            height: 40px;
+            margin-left: 1.5rem;
+            vertical-align: middle;
+        }
+        /* Footer */
+        .footer {
+            width: 100%;
+            background: transparent;
+            box-shadow: none;
+            padding: 3.5rem 0 2.5rem 0;
+            margin-top: 5rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            text-align: left;
+            background: var(--footer-gradient) !important;
+            font-size: 1.08rem;
+        }
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.2rem;
+            min-width: 220px;
+        }
+        .footer-logo {
+            height: 48px;
+            width: auto;
+        }
+        .footer-desc {
+            color: #888;
+            font-size: 1.05rem;
+            margin-top: 0.5rem;
+            max-width: 220px;
+            line-height: 1.5;
+        }
+        .footer-cols {
+            display: flex;
+            gap: 4rem;
+            justify-content: center;
+            align-items: flex-start;
+            flex: 1;
+        }
+        .footer-col {
+            min-width: 140px;
+            font-size: 1.08rem;
+        }
+        .footer-col h5 {
+            font-size: 1.18rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+        }
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .footer-col ul li {
+            margin-bottom: 0.7rem;
+        }
+        .footer-col ul li a {
+            color: #222;
+            text-decoration: none;
+            font-size: 1.05rem;
+            transition: color 0.2s;
+        }
+        .footer-col ul li a:hover {
+            color: #4F46E5;
+        }
+        .footer-right-img {
+            height: 56px;
+            margin-left: 2rem;
+            vertical-align: middle;
+        }
+        @media (max-width: 900px) {
+            .footer-cols {
+                flex-direction: column;
+                gap: 2rem;
+                align-items: flex-start;
+            }
+            .footer {
+                flex-direction: column;
+                align-items: center;
+                text-align: left;
+            }
+            .footer-right-img {
+                margin: 2rem 0 0 0;
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar-links {
+                gap: 1rem;
+            }
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .footer-cols {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .footer-right-img {
+                margin: 2rem 0 0 0;
+            }
+        }
+        .container {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
         }
 
-        .btn-primary {
-            background-color: #588157;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #3A5A40;
-        }
-
-        label {
-            font-weight: bold;
-            color: #3A5A40;
-        }
     </style>
-    <!-- Leaflet CSS -->
-    <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <!-- Leaflet JS -->
-    <script
-            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
+    {% block extra_head %}{% endblock %}
+
 </head>
 <body>
+    <div class="hero-bg-parent" style="position: relative;">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="container" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="navbar-left">
+                    <a href="/">
+                        <img src="{% static 'photos/logo.png' %}" alt="Logo" class="navbar-logo">
+                    </a>
+                </div>
+                <div class="navbar-links">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:profile' %}">Profile</a>
+                        <a href="{% url 'accounts:switch_role' %}">Switch Role</a>
+{#                    <a href="{% url 'bookings:bookings' %}">Bookings</a>#}
+                        <a href="{% url 'accounts:logout' %}">Logout</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">Login</a>
+                        <a href="{% url 'accounts:register' %}">Sign Up</a>
+                    {% endif %}
+{#                <img src="{% static 'photos/right_part_of_navbar.png' %}" alt="Decorative" class="navbar-right-img">#}
+                </div>
+            </div>
+        </nav>
 
-{% if user.is_authenticated %}
-    Hello, {{ user.username }} |
-    <a href="{% url 'accounts:switch_role' %}">Switch Role</a> |
-    <a href="{% url 'accounts:logout' %}">Logout</a>
-    <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-dark">Profile</a>
-{% else %}
-    <a href="{% url 'accounts:login' %}">Login</a> |
-    <a href="{% url 'accounts:register' %}">Register</a>
-{% endif %}
-{% if request.user.is_authenticated and request.user.profile.role == 'driver' %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'rides:create' %}">Offer a Ride</a>
-    </li>
-{% endif %}
-<div class="container mt-4">
-    {% block content %}{% endblock %}
-</div>
+        {% block hero_bg %}{% endblock %}
+
+        <!-- Main Content -->
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container" style="display: flex; align-items: flex-start; justify-content: center; gap: 3rem; flex-wrap: wrap; width: 100%;">
+            <div class="footer-left">
+                <img src="{% static 'photos/logo.png' %}" alt="Logo" class="footer-logo">
+                <div class="footer-desc">Book your trip in minutes, get full control for much longer.</div>
+            </div>
+            <div class="footer-cols">
+                <div class="footer-col">
+                    <h5>Company</h5>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Mobile</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>Contact</h5>
+                    <ul>
+                        <li><a href="#">Help/FAQ</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Affiliates</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>More</h5>
+                    <ul>
+                        <li><a href="#">Airlinefees</a></li>
+                        <li><a href="#">Airline</a></li>
+                        <li><a href="#">Low fare tips</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

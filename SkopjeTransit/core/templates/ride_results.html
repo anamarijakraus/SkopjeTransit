@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="container mt-5">
+<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; overflow-y: auto; max-height: 80vh;">
         <h2 class="mb-4 text-center">Available Rides</h2>
         <p class="text-center">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong>
             after {{ departure_time }}</p>
@@ -15,7 +16,9 @@
                         <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
                         <p><strong>Seats Left:</strong> {{ ride.available_seats }}</p>
                         <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>
-                        <a href="{% url 'rides:book' ride.id %}" class="btn btn-success">Book</a>
+                        <form action="{% url 'rides:book' ride.id %}" method="get" style="display:inline;">
+                            <button type="submit" style="background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Book</button>
+                        </form>
                     </div>
                 </div>
             {% endfor %}
@@ -43,7 +46,6 @@
         {% else %}
             <p class="text-center">No available buses match your search.</p>
         {% endif %}
-
-
     </div>
+</div>
 {% endblock %}

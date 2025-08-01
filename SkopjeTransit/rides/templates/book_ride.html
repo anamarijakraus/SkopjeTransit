@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">Book Ride</h2>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px;">
+        <h2 style="margin-bottom: 24px; text-align: center;">Book Ride</h2>
+        <div style="width:100%;">
             <p><strong>From:</strong> {{ ride.start_location }}</p>
             <p><strong>To:</strong> {{ ride.end_location }}</p>
             <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
@@ -11,7 +11,7 @@
             <form method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-primary w-100 mt-3">Confirm Booking</button>
+                <button type="submit" style="width:100%; margin-top:18px; background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Confirm Booking</button>
             </form>
         </div>
     </div>
