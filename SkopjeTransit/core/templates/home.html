@@ -133,7 +133,7 @@
             color: var(--accent);
         }
 
-        .booking-form input {
+        .booking-form input, .booking-form select {
             width: 100%;
             padding: 0.6rem 1rem;
             border-radius: 1.2rem;
@@ -142,6 +142,25 @@
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
             background: var(--light-bg);
+            box-sizing: border-box;
+        }
+
+        .booking-form select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        .booking-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
         }
 
         .booking-form button {
@@ -591,11 +610,19 @@
                 <form class="booking-form" method="POST">
                     {% csrf_token %}
                     <label for="start_location">Start Location</label>
-                    <input type="text" id="start_location" name="start_location"
-                           placeholder="Where are you starting from?" required>
+                    <select id="start_location" name="start_location" required>
+                        <option value="">Where are you starting from?</option>
+                        {% for stop in stops %}
+                            <option value="{{ stop.name }}">{{ stop.name }}</option>
+                        {% endfor %}
+                    </select>
                     <label for="end_location">End Location</label>
-                    <input type="text" id="end_location" name="end_location" placeholder="Where do you want to go?"
-                           required>
+                    <select id="end_location" name="end_location" required>
+                        <option value="">Where do you want to go?</option>
+                        {% for stop in stops %}
+                            <option value="{{ stop.name }}">{{ stop.name }}</option>
+                        {% endfor %}
+                    </select>
                     <label for="departure_time">Date</label>
                     <input type="datetime-local" id="departure_time" name="departure_time" required>
                     <label for="seats">Seats</label>
@@ -604,6 +631,8 @@
                     <button type="submit" class="btn-main">Search</button>
                 </form>
             </div>
+
+
         </section>
 
         <!-- Why Choose Section -->
