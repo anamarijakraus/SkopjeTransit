@@ -285,6 +285,15 @@
             background: var(--accent);
             color: #fff;
             font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+
+        .driver-btn:hover {
+            background: #ff9a5a;
+            color: #fff;
+            text-decoration: none;
         }
 
         .driver-right {
@@ -687,7 +696,7 @@
                     a community around sustainable urban mobility and reduce your carbon footprint while you earn a
                     little on the side.
                 </div>
-                <a class="btn-main driver-btn">Join the community</a>
+                <a href="{% url 'accounts:join_community' %}" class="btn-main driver-btn">Join the community</a>
             </div>
             <div class="driver-right">
                 <img src="{% static 'photos/driver-community.jpg' %}" alt="Driver Community" class="driver-img">

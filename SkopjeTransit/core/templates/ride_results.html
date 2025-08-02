@@ -158,7 +158,7 @@
                             <p><strong>From:</strong> {{ option.start }}</p>
                             <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>
                         </div>
-                        <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name|slice:'5:' }}">View stops</button>
+                        <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name }}">View stops</button>
                     </div>
                     <hr style="width: 50%; margin: 0.25rem auto;">
                 </div>
@@ -190,17 +190,7 @@
     const STOP_COORDINATES = {{ stop_coordinates_json|safe }};
     const BUS_STOPS = {{ bus_stops_json|safe }};
     
-    // Temporary mapping for old bus names to new ones
-    const BUS_NAME_MAPPING = {
-        '2': '2',
-        '4': '4', 
-        '7': '7',
-        '15': '15',
-        '19': '19',
-        '22': '22',
-        '24': '24',
-        '60': '60'
-    };
+
 
     function closeMapModal() {
         document.getElementById("mapModal").style.display = "none";
@@ -211,17 +201,20 @@
 
     document.querySelectorAll('.view-stops-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const busNumber = btn.dataset.bus;
-            console.log('Bus number:', busNumber);
+            const fullBusName = btn.dataset.bus;
+            console.log('Full bus name:', fullBusName);
+            
+            // Extract bus number from "Bus 22" -> "22"
+            const busNumber = fullBusName.replace('Bus ', '');
+            console.log('Extracted bus number:', busNumber);
             console.log('Available bus stops keys:', Object.keys(BUS_STOPS));
             console.log('Looking for stops for bus:', busNumber);
             
-            // Try to get stops using the mapping
-            const mappedBusNumber = BUS_NAME_MAPPING[busNumber] || busNumber;
-            const stops = BUS_STOPS[mappedBusNumber];
+            // Try to get stops using the extracted number
+            const stops = BUS_STOPS[busNumber];
             
             if (!stops) {
-                alert("No stops found for this bus. Bus number: " + busNumber + "\nAvailable buses: " + Object.keys(BUS_STOPS).join(', '));
+                alert("No stops found for this bus.\nFull bus name: " + fullBusName + "\nExtracted number: " + busNumber + "\nAvailable buses: " + Object.keys(BUS_STOPS).join(', '));
                 return;
             }
 

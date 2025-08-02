@@ -45,13 +45,31 @@ def switch_role(request):
         profile.role = 'passenger'
         profile.save()
         request.user.switch_role()
-        return redirect('core:home_view')
     else:
         profile.role = 'driver'
         profile.save()
         request.user.switch_role()
-        return redirect('rides:create')
+    return redirect('core:home_view')
 
+
+@login_required
+def join_community(request):
+    """
+    Handle the "Join the community" button functionality:
+    1. If user is passenger, switch to driver and redirect to create ride
+    2. If user is driver, just redirect to create ride
+    """
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    if profile.role == 'passenger':
+        # Switch to driver role
+        profile.role = 'driver'
+        profile.save()
+        request.user.switch_role()
+        return redirect('rides:create')
+    else:
+        # Already a driver, just redirect to create ride
+        return redirect('rides:create')
 
 
 @login_required

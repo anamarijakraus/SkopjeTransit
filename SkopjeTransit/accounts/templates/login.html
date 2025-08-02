@@ -1,16 +1,178 @@
 {% extends 'base.html' %}
 {% block content %}
-<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-  <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; text-align:center;">
-      <h2 class="mb-4">Login</h2>
-      <form method="POST">
-          {% csrf_token %}
-          <input name="username" class="form-control mb-2" placeholder="Username">
-          <input name="password" type="password" class="form-control mb-2" placeholder="Password">
-          {{ form.as_p }}
-          <button type="submit" class="btn btn-primary mt-3 w-100">Login</button>
-      </form>
-      <p class="mt-3">Don't have an account? <a href="{% url 'accounts:register' %}">Register here</a></p>
-  </div>
+<style>
+    .auth-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 500px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+    }
+
+    .auth-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .auth-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-family: 'Inter', sans-serif;
+        color: #1a1a2e;
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background: #f8fafc;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #ff7f32;
+        box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
+        background: #fff;
+    }
+
+    .auth-btn {
+        width: 100%;
+        background: #ff7f32;
+        color: #fff;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        transition: background 0.2s;
+        box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08);
+        cursor: pointer;
+        margin-top: 0.5rem;
+    }
+
+    .auth-btn:hover {
+        background: #ff9a5a;
+    }
+
+    .auth-link {
+        color: #ff7f32;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .auth-link:hover {
+        color: #ff9a5a;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: #666;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c53030;
+        padding: 0.75rem 1rem;
+        border-radius: 0.8rem;
+        margin-bottom: 1.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        border: 1px solid #fed7d7;
+    }
+
+    @media (max-width: 600px) {
+        .auth-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .auth-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to your SkopjeTransit account</p>
+        
+        {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input" 
+                    placeholder="Enter your username"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-input" 
+                    placeholder="Enter your password"
+                    required
+                >
+            </div>
+            
+            <button type="submit" class="auth-btn">Sign In</button>
+        </form>
+        
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'accounts:register' %}" class="auth-link">Create one here</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
