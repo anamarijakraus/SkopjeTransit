@@ -1,80 +1,159 @@
-{#{% extends 'base.html' %}#}
-{#{% block content %}#}
-{#    <div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">#}
-{#        <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; overflow-y: auto; max-height: 80vh;">#}
-{#            <h2 class="mb-4 text-center">Available Rides</h2>#}
-{#            <p class="text-center">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong>#}
-{#                after {{ departure_time }}</p>#}
-{##}
-{#            {% if rides %}#}
-{#                {% for ride in rides %}#}
-{#                    <div class="card mb-3">#}
-{#                        <div class="card-body">#}
-{#                            <h5 class="card-title">{{ ride.driver.username }}'s Ride</h5>#}
-{#                            <p><strong>From:</strong> {{ ride.start_location }}</p>#}
-{#                            <p><strong>To:</strong> {{ ride.end_location }}</p>#}
-{#                            <p><strong>Departure:</strong> {{ ride.departure_time }}</p>#}
-{#                            <p><strong>Seats Left:</strong> {{ ride.available_seats }}</p>#}
-{#                            <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>#}
-{#                            <form action="{% url 'rides:book' ride.id %}" method="get" style="display:inline;">#}
-{#                                <button type="submit"#}
-{#                                        style="background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;"#}
-{#                                        onmouseover="this.style.background='#ff9a5a'"#}
-{#                                        onmouseout="this.style.background='#ff7f32'">Book#}
-{#                                </button>#}
-{#                            </form>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                {% endfor %}#}
-{#            {% else %}#}
-{#                <p class="text-center">No available car rides match your search.</p>#}
-{#            {% endif %}#}
-{##}
-{#            <!-- JSP Bus results -->#}
-{#            <hr class="my-4">#}
-{##}
-{#            <h3 class="text-center">JSP Bus Options</h3>#}
-{##}
-{#            {% if buses %}#}
-{#                {% for option in buses %}#}
-{#                    <div class="card mb-3 border-info">#}
-{#                        <div class="card-body">#}
-{#                            <h3 class="card-title">{{ option.bus.name }}</h3>#}
-{#                            <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name }}">View#}
-{#                                stops#}
-{#                            </button>#}
-{#                            <p><strong>From:</strong> {{ option.start }}</p>#}
-                            {#                        <p><strong>To:</strong> {{ option.end }}</p>#}
-{#                            <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>#}
-                            {#                        <p><strong>Departs At:</strong> {{ option.start_time }}</p>#}
-{#                        </div>#}
-{#                        <hr style="width: 50%; margin: 0.25rem auto;">#}
-{#                    </div>#}
-{#                {% endfor %}#}
-{#            {% else %}#}
-{#                <p class="text-center">No available buses match your search.</p>#}
-{#            {% endif %}#}
-{##}
-{##}
-{#            <!-- Map Modal -->#}
-{#            <div id="mapModal"#}
-{#                 style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">#}
-{#                <div style="position:relative; width:90vw; height:90vh; background:#fff; border-radius:10px; overflow:hidden;">#}
-{#                    <button onclick="closeMapModal()" style="position:absolute; top:10px; right:10px; z-index:1001;">#}
-{#                        Close#}
-{#                    </button>#}
-{#                    <div id="map" style="width:100%; height:100%;"></div>#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{##}
-{#        </div>#}
-{#    </div>#}
-{#{% endblock %}#}
-
 {% extends 'base.html' %}
 {% block content %}
 <style>
+    .results-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .results-card {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+        overflow-y: auto;
+        max-height: 80vh;
+    }
+
+    .results-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .results-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 2rem 0 1rem 0;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ride-item {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+        transition: box-shadow 0.2s;
+    }
+
+    .ride-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .ride-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .ride-info {
+        flex: 1;
+    }
+
+    .ride-title {
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .ride-details {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .ride-price {
+        background: #ff7f32;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .book-btn {
+        background: #ff7f32;
+        color: #fff;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        transition: background 0.2s;
+        box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08);
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+
+    .book-btn:hover {
+        background: #ff9a5a;
+    }
+
+    .bus-item {
+        background: #f8fafc;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+        transition: box-shadow 0.2s;
+    }
+
+    .bus-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .bus-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .bus-info {
+        flex: 1;
+    }
+
+    .bus-title {
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .bus-details {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
     .view-stops-btn {
         background: #ff7f32 !important;
         color: white !important;
@@ -85,6 +164,7 @@
         font-family: 'Inter', sans-serif !important;
         transition: all 0.2s !important;
         box-shadow: 0 2px 8px rgba(255, 127, 50, 0.2) !important;
+        cursor: pointer;
     }
     
     .view-stops-btn:hover {
@@ -92,7 +172,24 @@
         transform: translateY(-1px) !important;
         box-shadow: 0 4px 12px rgba(255, 127, 50, 0.3) !important;
     }
-    
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        font-family: 'Inter', sans-serif;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 0.8rem;
+        border: 1px dashed #e0e0e0;
+    }
+
+    .divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 2rem 0;
+        border-radius: 1px;
+    }
+
     .map-title {
         position: absolute;
         top: 15px;
@@ -118,55 +215,84 @@
             border-radius: 10px !important;
         }
     }
+
+    @media (max-width: 600px) {
+        .results-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .results-title {
+            font-size: 1.75rem;
+        }
+
+        .ride-header, .bus-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ride-price {
+            align-self: flex-start;
+        }
+    }
 </style>
-<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px; overflow-y: auto; max-height: 80vh;">
-        <h2 class="mb-4 text-center">Available Rides</h2>
-        <p class="text-center">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong>
-            after {{ departure_time }}</p>
+
+<div class="results-container">
+    <div class="results-card">
+        <h2 class="results-title">Available Rides</h2>
+        <p class="results-subtitle">From <strong>{{ start }}</strong> to <strong>{{ end }}</strong> after {{ departure_time }}</p>
 
         {% if rides %}
+            <div class="section-title">Car Rides</div>
             {% for ride in rides %}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ ride.driver.username }}'s Ride</h5>
-                        <p><strong>From:</strong> {{ ride.start_location }}</p>
-                        <p><strong>To:</strong> {{ ride.end_location }}</p>
-                        <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
-                        <p><strong>Seats Left:</strong> {{ ride.available_seats }}</p>
-                        <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>
-                        <form action="{% url 'rides:book' ride.id %}" method="get" style="display:inline;">
-                            <button type="submit" style="background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Book</button>
-                        </form>
+                <div class="ride-item">
+                    <div class="ride-header">
+                        <div class="ride-info">
+                            <div class="ride-title">{{ ride.driver.username }}'s Ride</div>
+                            <div class="ride-details">
+                                <strong>From:</strong> {{ ride.start_location }}<br>
+                                <strong>To:</strong> {{ ride.end_location }}<br>
+                                <strong>Departure:</strong> {{ ride.departure_time|date:"M d, Y H:i" }}<br>
+                                <strong>Seats Left:</strong> {{ ride.available_seats }}
+                            </div>
+                        </div>
+                        <div class="ride-price">{{ ride.seat_price }} ден</div>
                     </div>
+                    <form action="{% url 'rides:book' ride.id %}" method="get" style="display:inline;">
+                        <button type="submit" class="book-btn">Book Ride</button>
+                    </form>
                 </div>
             {% endfor %}
         {% else %}
-            <p class="text-center">No available car rides match your search.</p>
+            <div class="empty-state">
+                <p>No available car rides match your search.</p>
+            </div>
         {% endif %}
 
         <!-- JSP Bus results -->
-        <hr class="my-4">
-        <h3 class="text-center">JSP Bus Options</h3>
+        <div class="divider"></div>
+        <div class="section-title">JSP Bus Options</div>
 
         {% if buses %}
             {% for option in buses %}
-                <div class="card mb-3 border-info">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="card-title">Bus {{ option.bus.name }}</h3>
-                            <p><strong>From:</strong> {{ option.start }}</p>
-                            <p><strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}</p>
+                <div class="bus-item">
+                    <div class="bus-header">
+                        <div class="bus-info">
+                            <div class="bus-title">Bus {{ option.bus.name }}</div>
+                            <div class="bus-details">
+                                <strong>From:</strong> {{ option.start }}<br>
+                                <strong>Departs At:</strong> {{ option.start_time|time:"H:i" }}
+                            </div>
                         </div>
-                        <button class="btn btn-outline-primary view-stops-btn" data-bus="{{ option.bus.name }}">View stops</button>
+                        <button class="view-stops-btn" data-bus="{{ option.bus.name }}">View stops</button>
                     </div>
-                    <hr style="width: 50%; margin: 0.25rem auto;">
                 </div>
             {% endfor %}
         {% else %}
-            <p class="text-center">No available buses match your search.</p>
+            <div class="empty-state">
+                <p>No available buses match your search.</p>
+            </div>
         {% endif %}
-
     </div>
 </div>
 
@@ -189,8 +315,6 @@
 <script>
     const STOP_COORDINATES = {{ stop_coordinates_json|safe }};
     const BUS_STOPS = {{ bus_stops_json|safe }};
-    
-
 
     function closeMapModal() {
         document.getElementById("mapModal").style.display = "none";

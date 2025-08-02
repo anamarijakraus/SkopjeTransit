@@ -1,19 +1,228 @@
 {% extends 'base.html' %}
 {% block content %}
-<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px;">
-        <h2 style="margin-bottom: 24px; text-align: center;">Book Ride</h2>
-        <div style="width:100%;">
-            <p><strong>From:</strong> {{ ride.start_location }}</p>
-            <p><strong>To:</strong> {{ ride.end_location }}</p>
-            <p><strong>Departure:</strong> {{ ride.departure_time }}</p>
-            <p><strong>Price:</strong> {{ ride.seat_price }} ден</p>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" style="width:100%; margin-top:18px; background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Confirm Booking</button>
-            </form>
+<style>
+    .booking-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .booking-card {
+        width: 100%;
+        max-width: 500px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+    }
+
+    .booking-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .booking-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ride-summary {
+        background: #f8fafc;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ride-summary-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .ride-detail {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .ride-detail:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ride-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .ride-value {
+        font-weight: 700;
+        color: #1a1a2e;
+        font-size: 0.95rem;
+    }
+
+    .ride-price {
+        background: #ff7f32;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-family: 'Inter', sans-serif;
+        color: #1a1a2e;
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background: #f8fafc;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #ff7f32;
+        box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
+        background: #fff;
+    }
+
+    /* Style Django form fields */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background: #f8fafc;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #ff7f32;
+        box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
+        background: #fff;
+    }
+
+    .booking-btn {
+        width: 100%;
+        background: #ff7f32;
+        color: #fff;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        transition: background 0.2s;
+        box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08);
+        cursor: pointer;
+        margin-top: 0.5rem;
+    }
+
+    .booking-btn:hover {
+        background: #ff9a5a;
+    }
+
+    @media (max-width: 600px) {
+        .booking-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .booking-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+
+<div class="booking-container">
+    <div class="booking-card">
+        <h2 class="booking-title">Book Your Ride</h2>
+        <p class="booking-subtitle">Confirm your booking details</p>
+        
+        <div class="ride-summary">
+            <div class="ride-summary-title">Ride Details</div>
+            <div class="ride-detail">
+                <span class="ride-label">From:</span>
+                <span class="ride-value">{{ ride.start_location }}</span>
+            </div>
+            <div class="ride-detail">
+                <span class="ride-label">To:</span>
+                <span class="ride-value">{{ ride.end_location }}</span>
+            </div>
+            <div class="ride-detail">
+                <span class="ride-label">Departure:</span>
+                <span class="ride-value">{{ ride.departure_time|date:"M d, Y H:i" }}</span>
+            </div>
+            <div class="ride-detail">
+                <span class="ride-label">Price:</span>
+                <span class="ride-price">{{ ride.seat_price }} ден</span>
+            </div>
         </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}
+                    </label>
+                    <div class="field-wrapper">
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <div class="help-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="booking-btn">Confirm Booking</button>
+        </form>
     </div>
 </div>
 {% endblock %}

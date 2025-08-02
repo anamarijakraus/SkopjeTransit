@@ -1,57 +1,273 @@
 {% extends 'base.html' %}
 {% block content %}
-<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-  <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px;">
-    <h2 style="margin-bottom: 24px; text-align: center;">Welcome, {{ request.user.username }}!</h2>
-    {% if user_type == 'passenger' %}
-        <h4 class="mb-3">Your Booked Rides:</h4>
-        {% if bookings %}
-            <ul class="list-group">
-                {% for booking in bookings %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>From:</strong> {{ booking.ride.start_location }}
-                            <strong>To:</strong> {{ booking.ride.end_location }}<br>
-                            <strong>Driver:</strong> {{ booking.ride.driver.username }} <br> <strong>Stop:</strong> {{ booking.stop }}
+<style>
+    .profile-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .profile-card {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+    }
+
+    .profile-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .profile-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .profile-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .history-link {
+        color: #ff7f32;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        background: rgba(255, 127, 50, 0.1);
+    }
+
+    .history-link:hover {
+        color: #ff9a5a;
+        background: rgba(255, 127, 50, 0.15);
+    }
+
+    .stats-card {
+        background: #f8fafc;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .stats-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ff7f32;
+        margin-bottom: 0.25rem;
+    }
+
+    .stats-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .ride-item {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+        transition: box-shadow 0.2s;
+    }
+
+    .ride-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .ride-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .ride-info {
+        flex: 1;
+    }
+
+    .ride-location {
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .ride-details {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .ride-price {
+        background: #ff7f32;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .ride-date {
+        color: #888;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        font-family: 'Inter', sans-serif;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 0.8rem;
+        border: 1px dashed #e0e0e0;
+    }
+
+    .divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 1.5rem 0;
+        border-radius: 1px;
+    }
+
+    @media (max-width: 600px) {
+        .profile-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .profile-title {
+            font-size: 1.75rem;
+        }
+
+        .ride-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ride-price {
+            align-self: flex-start;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-card">
+        <h2 class="profile-title">Welcome, {{ request.user.username }}!</h2>
+        <p class="profile-subtitle">Manage your rides and bookings</p>
+
+        {% if user_type == 'passenger' %}
+            <div class="profile-section">
+                <div class="section-title">
+                    Your Booked Rides
+                    <a href="#" class="history-link">View History</a>
+                </div>
+                
+                {% if bookings %}
+                    {% for booking in bookings %}
+                        <div class="ride-item">
+                            <div class="ride-header">
+                                <div class="ride-info">
+                                    <div class="ride-location">
+                                        {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                    </div>
+                                    <div class="ride-details">
+                                        <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
+                                        <strong>Pickup:</strong> {{ booking.stop }}
+                                    </div>
+                                    <div class="ride-date">
+                                        Booked on {{ booking.created_at|date:"M d, Y H:i" }}
+                                    </div>
+                                </div>
+                                <div class="ride-price">
+                                    {{ booking.ride.seat_price }} MKD
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="badge bg-success rounded-pill"><strong>Price:</strong>{{ booking.ride.seat_price }} MKD</span><br>
-                            <strong>Date:</strong><small>{{ booking.created_at|date:"M d, Y H:i" }}</small>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No bookings yet.</p>
+                        <p>Start by searching for rides on the homepage!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        {% elif user_type == 'driver' %}
+            <div class="profile-section">
+                <div class="stats-card">
+                    <div class="stats-value">{{ total_earnings }} MKD</div>
+                    <div class="stats-label">Total Earnings</div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="section-title">
+                    Your Offered Rides
+                    <a href="#" class="history-link">View History</a>
+                </div>
+                
+                {% if rides %}
+                    {% for ride in rides %}
+                        <div class="ride-item">
+                            <div class="ride-header">
+                                <div class="ride-info">
+                                    <div class="ride-location">
+                                        {{ ride.start_location }} → {{ ride.end_location }}
+                                    </div>
+                                    <div class="ride-details">
+                                        <strong>Price per Seat:</strong> {{ ride.seat_price }} MKD<br>
+                                        <strong>Available Seats:</strong> {{ ride.available_seats }}
+                                    </div>
+                                    <div class="ride-date">
+                                        Departure: {{ ride.departure_time|date:"M d, Y H:i" }}
+                                    </div>
+                                </div>
+                                <div class="ride-price">
+                                    {{ ride.available_seats }} seats
+                                </div>
+                            </div>
                         </div>
-                    </li>
-                    {% if not forloop.last %}
-                        <hr style="margin: 10px 0 10px 0; border-top: 2px solid #e0e0e0; border-radius: 1px;">
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No bookings yet.</p>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No rides offered yet.</p>
+                        <p>Start offering rides to earn money!</p>
+                    </div>
+                {% endif %}
+            </div>
         {% endif %}
-    {% elif user_type == 'driver' %}
-        <h4 class="mb-3">Your Offered Rides:</h4>
-        <p><strong>Total Earnings:</strong> {{ total_earnings }} MKD</p>
-        {% if rides %}
-            <ul class="list-group">
-                {% for ride in rides %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>From:</strong> {{ ride.start_location }}
-                            <strong>To:</strong> {{ ride.end_location }}<br>
-                            <strong>Price per Seat:</strong> {{ ride.seat_price }} <br> <strong>Available:</strong> {{ ride.available_seats }}
-                        </div>
-                        <div>
-                          <strong>Date:</strong>  <small>{{ ride.departure_time|date:"M d, Y H:i" }}</small>
-                        </div>
-                    </li>
-                    {% if not forloop.last %}
-                        <hr style="margin: 10px 0 10px 0; border-top: 2px solid #e0e0e0; border-radius: 1px;">
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No rides offered yet.</p>
-        {% endif %}
-    {% endif %}
-  </div>
+    </div>
 </div>
 {% endblock %}

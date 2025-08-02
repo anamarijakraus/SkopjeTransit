@@ -1,12 +1,185 @@
 {% extends 'base.html' %}
 {% block content %}
-<div style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <div style="width:100%; max-width:500px; background:#fff; border-radius:12px; box-shadow:0 2px 16px rgba(0,0,0,0.07); padding:24px 16px;">
-        <h2 style="margin-bottom: 24px; text-align: center;">Offer a New Ride</h2>
-        <form method="POST" style="width: 100%;">
+<style>
+    .create-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .create-card {
+        width: 100%;
+        max-width: 500px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+    }
+
+    .create-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .create-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-family: 'Inter', sans-serif;
+        color: #1a1a2e;
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background: #f8fafc;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #ff7f32;
+        box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
+        background: #fff;
+    }
+
+    /* Style Django form fields */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #e0e0e0;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        background: #f8fafc;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #ff7f32;
+        box-shadow: 0 0 0 2px rgba(255, 127, 50, 0.1);
+        background: #fff;
+    }
+
+    /* Remove default Django styling */
+    .form-group ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .form-group li {
+        margin: 0;
+        padding: 0;
+    }
+
+    .field-wrapper {
+        position: relative;
+    }
+
+    .help-text {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .field-error {
+        color: #c53030;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .create-btn {
+        width: 100%;
+        background: #ff7f32;
+        color: #fff;
+        border: none;
+        border-radius: 2rem;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        transition: background 0.2s;
+        box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08);
+        cursor: pointer;
+        margin-top: 0.5rem;
+    }
+
+    .create-btn:hover {
+        background: #ff9a5a;
+    }
+
+    @media (max-width: 600px) {
+        .create-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .create-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+
+<div class="create-container">
+    <div class="create-card">
+        <h2 class="create-title">Offer a New Ride</h2>
+        <p class="create-subtitle">Share your journey with others</p>
+        
+        <form method="POST">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" style="width:100%; margin-top:18px; background: #ff7f32; color: #fff; border: none; border-radius: 2rem; padding: 0.75rem 2.5rem; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 24px 0 rgba(44, 62, 80, 0.08); cursor:pointer;" onmouseover="this.style.background='#ff9a5a'" onmouseout="this.style.background='#ff7f32'">Create Ride</button>
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}
+                    </label>
+                    <div class="field-wrapper">
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <div class="help-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="create-btn">Create Ride</button>
         </form>
     </div>
 </div>
