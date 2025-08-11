@@ -209,3 +209,7 @@ def bus_map(request):
         'stop_coordinates_json': json.dumps(STOP_COORDINATES),
         'bus_stops_json': json.dumps(BUS_STOPS),
     })
+
+def scam_safety_view(request):
+    """Render the scam safety education page."""
+    return render(request, 'scam_safety.html')

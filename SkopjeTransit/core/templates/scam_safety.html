@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    /* Page container aligns with profile/login look */
+    .page-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem 1rem; }
+    .page-title { font-size: 2.25rem; font-weight: 900; color: #1a1a2e; margin: 1rem 0 2rem 0; text-align: left; font-family: 'Inter', sans-serif; }
+
+    /* Top three tips */
+    .tips-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .tip-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 16px rgba(0,0,0,0.04); }
+    .tip-icon { font-size: 1.8rem; color: #ff7f32; margin-bottom: 0.25rem; }
+    .tip-title { font-weight: 800; color: #1a1a2e; margin-bottom: 0.25rem; font-family: 'Inter', sans-serif; }
+    .tip-text { color: #555; font-size: 1rem; }
+
+    /* Dark section two columns */
+    .dark-section { background: #133041; color: #fff; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; }
+    .dark-title { font-size: 1.75rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -0.5px; }
+    .dark-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .dark-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 1rem; }
+    .dark-link { color: #ffd7bf; text-decoration: underline; }
+
+    /* What to do section */
+    .actions-title { font-size: 1.75rem; font-weight: 900; color: #1a1a2e; margin: 2.5rem 0 1rem 0; }
+    .actions-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .action-card { background:#fff; border:1px solid #e0e0e0; border-radius:12px; padding:1.25rem; box-shadow:0 2px 16px rgba(0,0,0,0.04); }
+    .action-title { font-weight:700; color:#1a1a2e; margin-bottom:0.25rem; }
+    .action-text { color:#555; }
+
+    /* CTA section */
+    .cta { background:#f8fafc; border:1px solid #e0e0e0; border-radius:12px; padding:1.5rem; margin-top:2.5rem; text-align:left; }
+    .cta-title { font-size:1.75rem; font-weight:900; color:#1a1a2e; margin-bottom:0.75rem; }
+    .btn-accent { background:#ff7f32; color:#fff; border:none; border-radius:1.25rem; padding:0.7rem 1.4rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem; }
+    .btn-accent:hover { background:#ff9a5a; color:#fff; text-decoration:none; }
+
+    @media (max-width: 768px) { .dark-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="page-container">
+    <h1 class="page-title">What you can do to avoid a scam</h1>
+
+    <section class="tips-row" aria-label="Anti-scam quick tips">
+        <article class="tip-card">
+            <div class="tip-icon"><i class="bi bi-link-45deg"></i></div>
+            <h2 class="tip-title h5">Never visit links sent by drivers</h2>
+            <p class="tip-text">Some fake drivers could try to make you pay outside our app by sending a link, a phone number or an email address.</p>
+        </article>
+        <article class="tip-card">
+            <div class="tip-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <h2 class="tip-title h5">Be aware of weird behaviour and requests</h2>
+            <p class="tip-text">Experienced drivers know they should not ask for money outside the platform. If someone asks you to do so, politely decline.</p>
+        </article>
+        <article class="tip-card">
+            <div class="tip-icon"><i class="bi bi-shield-lock"></i></div>
+            <h2 class="tip-title h5">Only pay for your ride on our app</h2>
+            <p class="tip-text">Even if the website sent by fake drivers looks like ours, do not transfer money outside our app.</p>
+        </article>
+    </section>
+
+    <section class="dark-section" aria-label="Scammer tactics">
+        <h2 class="dark-title">How scammers try to get your money or payment details</h2>
+        <div class="dark-grid">
+            <div class="dark-card">
+                <h3 class="h5" style="font-weight:800; color:#fff;">By building a fake website that looks like ours</h3>
+                <p style="color:#e6eef3;">Scams succeed because they look like the real thing. Scammers are getting smarter: they will try to make you visit another website, very similar to ours, that will convince you to give them your money or payment details.</p>
+                <p style="color:#e6eef3; margin-bottom:0;">Make sure you’re always paying on SkopjeTransit’s app or website.</p>
+            </div>
+            <div class="dark-card">
+                <h3 class="h5" style="font-weight:800; color:#fff;">By creating fake user profiles</h3>
+                <p style="color:#e6eef3;">Fake profiles are usually created just a few days or hours ago and don’t have any ratings from other members. They also often charge less than other similar rides. Before or after booking the ride, they could try to contact you outside of our platform (through your phone or WhatsApp).</p>
+                <p style="color:#e6eef3;">If you think you interacted with a fake profile, you can <a class="dark-link" href="#">report it</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <section aria-label="Actions to take">
+        <h2 class="actions-title">What to do if you think someone is trying to scam you</h2>
+        <div class="actions-row">
+            <article class="action-card">
+                <h3 class="action-title">If the driver sends you a link to pay for your ride</h3>
+                <p class="action-text">You can reply: “I’m uncomfortable using the link you sent, I will follow SkopjeTransit’s recommendation and pay on their app.”</p>
+            </article>
+            <article class="action-card">
+                <h3 class="action-title">If the driver insists on getting paid in another way</h3>
+                <p class="action-text">You can reply: “Don’t worry, SkopjeTransit’s application is secure.”</p>
+            </article>
+            <article class="action-card">
+                <h3 class="action-title">If the driver asks you for additional charges</h3>
+                <p class="action-text">You can reply: “I have already paid for the ride on SkopjeTransit’s app.”</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="cta" aria-label="Report suspicious activity">
+        <h2 class="cta-title">Noticed something suspicious? Report it.</h2>
+        <p style="color:#555;">Help us protect you from scams by reporting if you notice a suspicious message, if you have been scammed or if you think someone is trying to scam you.</p>
+        <a href="#" class="btn-accent"><i class="bi bi-shield-check"></i> Report a scam</a>
+    </section>
+</div>
+{% endblock %}
+
+

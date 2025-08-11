@@ -409,6 +409,33 @@
             background: #ff9a5a;
         }
 
+        /* Scam Features - clean layout with headings above text */
+        .scam-features {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .scam-feature {
+            padding: 0.5rem 0;
+        }
+
+        .scam-feature-title {
+            font-weight: 700;
+            color: var(--accent);
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .scam-feature-desc {
+            color: #666;
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.4;
+            font-family: 'Inter', sans-serif;
+        }
+
         /* Feedback Section */
         .feedback-section {
             background: #fff;
@@ -692,8 +719,8 @@
                 <div class="driver-desc" style="font-size:1.5rem; font-weight:900;">Share your transport journey with
                     others
                 </div>
-                <div class="driver-desc">Connect with other commuters and share your daily transport experiences. Build
-                    a community around sustainable urban mobility and reduce your carbon footprint while you earn a
+                <div class="driver-desc">Connect with other commuters and share your daily transport experiences. 
+                    Build a community around sustainable urban mobility and reduce your carbon footprint while you earn a
                     little on the side.
                 </div>
                 <a href="{% url 'accounts:join_community' %}" class="btn-main driver-btn">Join the community</a>
@@ -707,23 +734,25 @@
         <section class="scam-section">
             <div class="scam-left">
                 <div class="scam-title">Help Us Keep You Safe From Scams!</div>
-                <ul class="scam-list">
-                    <li><span style="color:var(--accent);font-weight:700;margin-right:0.5rem;">Emergency contacts</span>
-                        <span style="color:#888;font-weight:400;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Urna, tortor tempus.</span>
-                    </li>
-                    <li><span style="color:var(--accent);font-weight:700;margin-right:0.5rem;">Report suspicious activity</span>
-                        <span style="color:#888;font-weight:400;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Urna, tortor tempus.</span>
-                    </li>
-                    <li><span
-                            style="color:var(--accent);font-weight:700;margin-right:0.5rem;">Live location sharing</span>
-                        <span style="color:#888;font-weight:400;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Urna, tortor tempus.</span>
-                    </li>
-                </ul>
+                <div class="scam-features">
+                    <div class="scam-feature">
+                        <h3 class="scam-feature-title">Emergency contacts</h3>
+                        <p class="scam-feature-desc">Save trusted numbers in your profile so help is only one tap away during urgent situations.</p>
+                    </div>
+                    <div class="scam-feature">
+                        <h3 class="scam-feature-title">Report suspicious activity</h3>
+                        <p class="scam-feature-desc">Easily flag unusual messages or offers so we can investigate and keep our community safe.</p>
+                    </div>
+                    <div class="scam-feature">
+                        <h3 class="scam-feature-title">Live location sharing</h3>
+                        <p class="scam-feature-desc">Share your trip in real-time with friends or family for added peace of mind while traveling.</p>
+                    </div>
+                </div>
             </div>
             <div class="scam-right" style="display:flex;flex-direction:column;align-items:center;">
                 <img src="{% static 'photos/above_scam_image.png' %}" class="scam-img-glow" alt="Glow">
                 <img src="{% static 'photos/scam-safety.png' %}" alt="Scam Safety" class="scam-img">
-                <a href="#" class="scam-learn-btn">Learn More</a>
+                <a href="{% url 'core:scam_safety' %}" class="scam-learn-btn">Learn More</a>
             </div>
         </section>
 
