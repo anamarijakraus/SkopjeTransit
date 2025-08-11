@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .history-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+    }
+
+    .history-card {
+        width: 100%;
+        max-width: 800px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        padding: 2.5rem 2rem;
+        border: 1px solid #f0f0f0;
+    }
+
+    .history-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .history-subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 1.1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #ff7f32;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 1rem;
+        background: rgba(255, 127, 50, 0.1);
+        transition: all 0.2s;
+    }
+
+    .back-link:hover {
+        color: #ff9a5a;
+        background: rgba(255, 127, 50, 0.15);
+        text-decoration: none;
+    }
+
+    .ride-item {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        font-family: 'Inter', sans-serif;
+        transition: box-shadow 0.2s;
+    }
+
+    .ride-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .ride-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .ride-info {
+        flex: 1;
+    }
+
+    .ride-location {
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .ride-details {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .ride-price {
+        background: #ff7f32;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .ride-date {
+        color: #888;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        font-family: 'Inter', sans-serif;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 0.8rem;
+        border: 1px dashed #e0e0e0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    @media (max-width: 600px) {
+        .history-card {
+            padding: 2rem 1.5rem;
+            margin: 0 0.5rem;
+        }
+        
+        .history-title {
+            font-size: 1.75rem;
+        }
+
+        .ride-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .ride-price {
+            align-self: flex-start;
+        }
+    }
+</style>
+
+<div class="history-container">
+    <div class="history-card">
+        <a href="{% url 'accounts:profile' %}" class="back-link">
+            ← Back to Profile
+        </a>
+        
+        <h2 class="history-title">Ride History</h2>
+        <p class="history-subtitle">
+            {% if user_type == 'passenger' %}
+                Your completed and past rides
+            {% else %}
+                Your completed and past offered rides
+            {% endif %}
+        </p>
+
+        {% if user_type == 'passenger' %}
+            {% if bookings %}
+                {% for booking in bookings %}
+                    <div class="ride-item">
+                        <div class="ride-header">
+                            <div class="ride-info">
+                                <div class="ride-location">
+                                    {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                </div>
+                                <div class="ride-details">
+                                    <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
+                                    <strong>Pickup:</strong> {{ booking.stop }}<br>
+                                    <strong>Status:</strong> 
+                                    <span class="status-badge status-{{ booking.status }}">
+                                        {{ booking.status|title }}
+                                    </span>
+                                </div>
+                                <div class="ride-date">
+                                    Departure: {{ booking.ride.departure_time|date:"M d, Y H:i" }}<br>
+                                    Booked on: {{ booking.created_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            <div class="ride-price">
+                                {{ booking.ride.seat_price }} MKD
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No ride history yet.</p>
+                    <p>Your completed rides will appear here!</p>
+                </div>
+            {% endif %}
+
+        {% elif user_type == 'driver' %}
+            {% if rides %}
+                {% for ride in rides %}
+                    <div class="ride-item">
+                        <div class="ride-header">
+                            <div class="ride-info">
+                                <div class="ride-location">
+                                    {{ ride.start_location }} → {{ ride.end_location }}
+                                </div>
+                                <div class="ride-details">
+                                    <strong>Price per Seat:</strong> {{ ride.seat_price }} MKD<br>
+                                    <strong>Total Bookings:</strong> {{ ride.bookings.count }}<br>
+                                    <strong>Status:</strong> 
+                                    <span class="status-badge status-{{ ride.status }}">
+                                        {{ ride.status|title }}
+                                    </span>
+                                </div>
+                                <div class="ride-date">
+                                    Departure: {{ ride.departure_time|date:"M d, Y H:i" }}<br>
+                                    Created: {{ ride.created_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            <div class="ride-price">
+                                {{ ride.bookings.count }} bookings
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No ride history yet.</p>
+                    <p>Your completed rides will appear here!</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+

@@ -12,7 +12,7 @@
 
     .profile-card {
         width: 100%;
-        max-width: 600px;
+        max-width: 800px;
         background: #fff;
         border-radius: 12px;
         box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
@@ -161,6 +161,242 @@
         border-radius: 1px;
     }
 
+    /* Tab Styles */
+    .tabs-container {
+        margin-bottom: 2rem;
+    }
+
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+
+    .tab {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        color: #666;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+        color: #ff7f32;
+        border-bottom-color: #ff7f32;
+        background: rgba(255, 127, 50, 0.05);
+    }
+
+    .tab:hover {
+        color: #ff7f32;
+        background: rgba(255, 127, 50, 0.05);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Button Styles */
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: #ff7f32;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #ff9a5a;
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        color: #fff;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        color: #fff;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    /* Review Styles */
+    .review-item {
+        background: #f8fafc;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .reviewer-name {
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .review-rating {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .star {
+        color: #ffd700;
+        font-size: 1.2rem;
+    }
+
+    .review-comment {
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+
+    .review-date {
+        color: #888;
+        font-size: 0.85rem;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .rating-input {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .rating-stars {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .rating-star {
+        font-size: 1.5rem;
+        color: #d1d5db;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .rating-star.active {
+        color: #ffd700;
+    }
+
     @media (max-width: 600px) {
         .profile-card {
             padding: 2rem 1.5rem;
@@ -179,6 +415,15 @@
         .ride-price {
             align-self: flex-start;
         }
+
+        .tabs {
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+        }
     }
 </style>
 
@@ -188,86 +433,482 @@
         <p class="profile-subtitle">Manage your rides and bookings</p>
 
         {% if user_type == 'passenger' %}
-            <div class="profile-section">
-                <div class="section-title">
-                    Your Booked Rides
-                    <a href="#" class="history-link">View History</a>
+            <!-- Passenger Tabs -->
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('booked')">Booked Rides</button>
+                    <button class="tab" onclick="showTab('pending')">Pending Rides</button>
+                    <button class="tab" onclick="showTab('ongoing')">Ongoing Rides</button>
                 </div>
-                
-                {% if bookings %}
-                    {% for booking in bookings %}
-                        <div class="ride-item">
-                            <div class="ride-header">
-                                <div class="ride-info">
-                                    <div class="ride-location">
-                                        {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+
+                <!-- Booked Rides Tab -->
+                <div id="booked" class="tab-content active">
+                    <div class="section-title">
+                        Confirmed Rides
+                        <a href="{% url 'accounts:ride_history' %}" class="history-link">View History</a>
+                    </div>
+                    
+                    {% if confirmed_bookings %}
+                        {% for booking in confirmed_bookings %}
+                            <div class="ride-item">
+                                <div class="ride-header">
+                                    <div class="ride-info">
+                                        <div class="ride-location">
+                                            {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                        </div>
+                                        <div class="ride-details">
+                                            <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
+                                            <strong>Pickup:</strong> {{ booking.stop }}
+                                        </div>
+                                        <div class="ride-date">
+                                            Departure: {{ booking.ride.departure_time|date:"M d, Y H:i" }}<br>
+                                            Booked on: {{ booking.created_at|date:"M d, Y H:i" }}
+                                        </div>
                                     </div>
-                                    <div class="ride-details">
-                                        <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
-                                        <strong>Pickup:</strong> {{ booking.stop }}
-                                    </div>
-                                    <div class="ride-date">
-                                        Booked on {{ booking.created_at|date:"M d, Y H:i" }}
+                                    <div class="ride-price">
+                                        {{ booking.ride.seat_price }} MKD
                                     </div>
                                 </div>
-                                <div class="ride-price">
-                                    {{ booking.ride.seat_price }} MKD
+                                <div style="text-align: right;">
+                                    <button class="action-btn btn-success" onclick="startRide('{{ booking.id }}')">
+                                        Start Ride
+                                    </button>
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No confirmed rides yet.</p>
+                            <p>Start by searching for rides on the homepage!</p>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>No bookings yet.</p>
-                        <p>Start by searching for rides on the homepage!</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pending Rides Tab -->
+                <div id="pending" class="tab-content">
+                    <div class="section-title">
+                        Pending Requests
                     </div>
-                {% endif %}
+                    
+                    {% if pending_bookings %}
+                        {% for booking in pending_bookings %}
+                            <div class="ride-item">
+                                <div class="ride-header">
+                                    <div class="ride-info">
+                                        <div class="ride-location">
+                                            {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                        </div>
+                                        <div class="ride-details">
+                                            <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
+                                            <strong>Pickup:</strong> {{ booking.stop }}
+                                        </div>
+                                        <div class="ride-date">
+                                            Departure: {{ booking.ride.departure_time|date:"M d, Y H:i" }}<br>
+                                            Requested on: {{ booking.created_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                    <div class="ride-price">
+                                        {{ booking.ride.seat_price }} MKD
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="color: #ff7f32; font-weight: 600;">Waiting for confirmation...</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No pending ride requests.</p>
+                            <p>Your ride requests will appear here while waiting for driver confirmation.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Ongoing Rides Tab -->
+                <div id="ongoing" class="tab-content">
+                    <div class="section-title">
+                        Active Rides
+                    </div>
+                    
+                    {% if ongoing_bookings %}
+                        {% for booking in ongoing_bookings %}
+                            <div class="ride-item">
+                                <div class="ride-header">
+                                    <div class="ride-info">
+                                        <div class="ride-location">
+                                            {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                        </div>
+                                        <div class="ride-details">
+                                            <strong>Driver:</strong> {{ booking.ride.driver.username }}<br>
+                                            <strong>Pickup:</strong> {{ booking.stop }}
+                                        </div>
+                                        <div class="ride-date">
+                                            Started: {{ booking.started_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                    <div class="ride-price">
+                                        {{ booking.ride.seat_price }} MKD
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <button class="action-btn btn-primary" onclick="endRide('{{ booking.id }}')">
+                                        End Ride
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No ongoing rides.</p>
+                            <p>Your active rides will appear here once you start them.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
         {% elif user_type == 'driver' %}
-            <div class="profile-section">
-                <div class="stats-card">
-                    <div class="stats-value">{{ total_earnings }} MKD</div>
-                    <div class="stats-label">Total Earnings</div>
+            <!-- Driver Tabs -->
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('current')">Current Rides</button>
+                    <button class="tab" onclick="showTab('pending')">Pending Requests</button>
+                    <button class="tab" onclick="showTab('reviews')">Reviews</button>
                 </div>
-            </div>
 
-            <div class="profile-section">
-                <div class="section-title">
-                    Your Offered Rides
-                    <a href="#" class="history-link">View History</a>
-                </div>
-                
-                {% if rides %}
-                    {% for ride in rides %}
-                        <div class="ride-item">
-                            <div class="ride-header">
-                                <div class="ride-info">
-                                    <div class="ride-location">
-                                        {{ ride.start_location }} → {{ ride.end_location }}
+                <!-- Current Rides Tab -->
+                <div id="current" class="tab-content active">
+                    <div class="stats-card">
+                        <div class="stats-value">{{ total_earnings }} MKD</div>
+                        <div class="stats-label">Total Earnings</div>
+                    </div>
+
+                    <div class="section-title">
+                        Your Offered Rides
+                        <a href="{% url 'accounts:ride_history' %}" class="history-link">View History</a>
+                    </div>
+                    
+                    {% if current_rides %}
+                        {% for ride in current_rides %}
+                            <div class="ride-item">
+                                <div class="ride-header">
+                                    <div class="ride-info">
+                                        <div class="ride-location">
+                                            {{ ride.start_location }} → {{ ride.end_location }}
+                                        </div>
+                                        <div class="ride-details">
+                                            <strong>Price per Seat:</strong> {{ ride.seat_price }} MKD<br>
+                                            <strong>Available Seats:</strong> {{ ride.available_seats }}
+                                        </div>
+                                        <div class="ride-date">
+                                            Departure: {{ ride.departure_time|date:"M d, Y H:i" }}
+                                        </div>
                                     </div>
-                                    <div class="ride-details">
-                                        <strong>Price per Seat:</strong> {{ ride.seat_price }} MKD<br>
-                                        <strong>Available Seats:</strong> {{ ride.available_seats }}
+                                    <div class="ride-price">
+                                        {{ ride.available_seats }} seats
                                     </div>
-                                    <div class="ride-date">
-                                        Departure: {{ ride.departure_time|date:"M d, Y H:i" }}
-                                    </div>
-                                </div>
-                                <div class="ride-price">
-                                    {{ ride.available_seats }} seats
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No rides offered yet.</p>
+                            <p>Start offering rides to earn money!</p>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <p>No rides offered yet.</p>
-                        <p>Start offering rides to earn money!</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pending Requests Tab -->
+                <div id="pending" class="tab-content">
+                    <div class="section-title">
+                        Passenger Requests
                     </div>
-                {% endif %}
+                    
+                    {% if pending_bookings %}
+                        {% for booking in pending_bookings %}
+                            <div class="ride-item">
+                                <div class="ride-header">
+                                    <div class="ride-info">
+                                        <div class="ride-location">
+                                            {{ booking.ride.start_location }} → {{ booking.ride.end_location }}
+                                        </div>
+                                        <div class="ride-details">
+                                            <strong>Passenger:</strong> {{ booking.passenger.username }}<br>
+                                            <strong>Pickup:</strong> {{ booking.stop }}<br>
+                                            <strong>Price:</strong> {{ booking.ride.seat_price }} MKD
+                                        </div>
+                                        <div class="ride-date">
+                                            Requested on: {{ booking.created_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <button class="action-btn btn-success" onclick="confirmRide('{{ booking.id }}')">
+                                            Confirm Ride
+                                        </button>
+                                        <button class="action-btn btn-danger">
+                                            Decline
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No pending passenger requests.</p>
+                            <p>Passenger ride requests will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Reviews Tab -->
+                <div id="reviews" class="tab-content">
+                    <div class="section-title">
+                        Reviews from Passengers
+                    </div>
+                    
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-name">{{ review.passenger.username }}</div>
+                                    <div class="review-rating">
+                                        {% for i in "12345" %}
+                                            <span class="star">{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="review-comment">{{ review.comment }}</div>
+                                <div class="review-date">{{ review.created_at|date:"M d, Y" }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No reviews yet.</p>
+                            <p>Reviews from passengers will appear here after completed rides.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Rate Your Driver</h3>
+            <button class="close-btn" onclick="closeReviewModal()">&times;</button>
+        </div>
+        <form id="reviewForm">
+            <div class="form-group">
+                <label class="form-label">Rating</label>
+                <div class="rating-input">
+                    <div class="rating-stars" id="ratingStars">
+                        <span class="rating-star" data-rating="1">☆</span>
+                        <span class="rating-star" data-rating="2">☆</span>
+                        <span class="rating-star" data-rating="3">☆</span>
+                        <span class="rating-star" data-rating="4">☆</span>
+                        <span class="rating-star" data-rating="5">☆</span>
+                    </div>
+                    <span id="ratingText">Select rating</span>
+                </div>
+                <input type="hidden" id="ratingValue" name="rating" value="">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="comment">Comment</label>
+                <textarea class="form-textarea" id="comment" name="comment" placeholder="Share your experience with this driver..." required></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="action-btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+                <button type="submit" class="action-btn btn-primary">Submit Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentBookingId = null;
+let currentRating = 0;
+
+// Tab functionality
+function showTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected tab content
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+}
+
+// Rating stars functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingStars = document.querySelectorAll('.rating-star');
+    const ratingText = document.getElementById('ratingText');
+    
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            setRating(rating);
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = this.dataset.rating;
+            highlightStars(rating);
+        });
+    });
+    
+    document.getElementById('ratingStars').addEventListener('mouseleave', function() {
+        highlightStars(currentRating);
+    });
+});
+
+function setRating(rating) {
+    currentRating = parseInt(rating);
+    document.getElementById('ratingValue').value = rating;
+    highlightStars(rating);
+    
+    const ratingTexts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    document.getElementById('ratingText').textContent = ratingTexts[rating];
+}
+
+function highlightStars(rating) {
+    const stars = document.querySelectorAll('.rating-star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.textContent = '★';
+            star.classList.add('active');
+        } else {
+            star.textContent = '☆';
+            star.classList.remove('active');
+        }
+    });
+}
+
+// Ride management functions
+function confirmRide(bookingId) {
+    console.log('Confirming ride with booking ID:', bookingId);
+    if (confirm('Are you sure you want to confirm this ride?')) {
+        fetch(`{% url 'accounts:confirm_ride' 0 %}`.replace('0', bookingId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                console.error('Server error:', data.error);
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            alert('An error occurred while confirming the ride. Please try again.');
+        });
+    }
+}
+
+function startRide(bookingId) {
+    console.log('Starting ride with booking ID:', bookingId);
+    if (confirm('Are you ready to start this ride?')) {
+        fetch(`{% url 'accounts:start_ride' 0 %}`.replace('0', bookingId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                console.error('Server error:', data.error);
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            alert('An error occurred while starting the ride. Please try again.');
+        });
+    }
+}
+
+function endRide(bookingId) {
+    currentBookingId = bookingId;
+    console.log('Ending ride with booking ID:', bookingId);
+    document.getElementById('reviewModal').style.display = 'flex';
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+    document.getElementById('reviewForm').reset();
+    currentRating = 0;
+    setRating(0);
+}
+
+// Review form submission
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentRating) {
+        alert('Please select a rating');
+        return;
+    }
+    
+    const formData = {
+        rating: currentRating,
+        comment: document.getElementById('comment').value
+    };
+    
+    console.log('Submitting review for booking ID:', currentBookingId, 'with data:', formData);
+    
+    fetch(`{% url 'accounts:submit_review' 0 %}`.replace('0', currentBookingId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+            if (data.success) {
+                closeReviewModal();
+                location.reload();
+            } else {
+                console.error('Server error:', data.error);
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Network error:', error);
+            alert('An error occurred while submitting the review. Please try again.');
+        });
+});
+
+// Utility function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %}
