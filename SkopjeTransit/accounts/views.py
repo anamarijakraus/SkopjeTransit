@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.db import models
 import json
 from .forms import CustomUserCreationForm
 from django.contrib.auth.decorators import login_required
@@ -98,13 +99,14 @@ def profile_view(request):
         # Reviews received
         reviews = Review.objects.filter(driver=request.user).order_by('-created_at')
         
-        # Calculate total earnings from completed rides
-        completed_bookings = Booking.objects.filter(
-            ride__driver=request.user,
-            status='completed'
+        # Calculate total earnings from completed transactions
+        from rides.models import Transaction
+        completed_transactions = Transaction.objects.filter(
+            driver=request.user,
+            transaction_type='ride_payment'
         )
         total_earnings = sum([
-            booking.ride.seat_price for booking in completed_bookings
+            transaction.driver_amount for transaction in completed_transactions
         ])
         
         context = {
@@ -139,6 +141,7 @@ def profile_view(request):
             'confirmed_bookings': confirmed_bookings,
             'pending_bookings': pending_bookings,
             'ongoing_bookings': ongoing_bookings,
+            'balance': profile.balance,
         }
 
     return render(request, 'profile.html', context)
@@ -150,10 +153,12 @@ def ride_history_view(request):
     now = timezone.now()
 
     if profile.role == 'driver':
-        # Past rides
+        # Past rides and completed rides
         past_rides = Ride.objects.filter(
-            driver=request.user,
-            departure_time__lt=now
+            driver=request.user
+        ).filter(
+            models.Q(departure_time__lt=now) |  # Past rides
+            models.Q(status='completed')  # Completed rides regardless of departure time
         ).order_by('-departure_time')
         
         context = {
@@ -161,10 +166,12 @@ def ride_history_view(request):
             'rides': past_rides,
         }
     else:
-        # Past bookings
+        # Past bookings and completed rides
         past_bookings = Booking.objects.filter(
-            passenger=request.user,
-            ride__departure_time__lt=now
+            passenger=request.user
+        ).filter(
+            models.Q(ride__departure_time__lt=now) |  # Past rides
+            models.Q(status='completed')  # Completed rides regardless of departure time
         ).select_related('ride').order_by('-ride__departure_time')
         
         context = {
@@ -249,7 +256,7 @@ def end_ride(request, booking_id):
 @login_required
 @require_POST
 def submit_review(request, booking_id):
-    """Passenger submits a review for a completed ride"""
+    """Passenger submits a review for a completed ride and processes payment"""
     if request.user.profile.role != 'passenger':
         return JsonResponse({'error': 'Only passengers can submit reviews'}, status=403)
     
@@ -274,6 +281,46 @@ def submit_review(request, booking_id):
         if booking.status != 'completed':
             return JsonResponse({'error': 'Can only review completed rides'}, status=400)
         
+        # Check if payment has already been processed for this booking
+        if hasattr(booking, 'transactions') and booking.transactions.exists():
+            return JsonResponse({'error': 'Payment already processed for this ride'}, status=400)
+        
+        # Get the seat price
+        seat_price = booking.ride.seat_price
+        
+        # Check if passenger has sufficient balance
+        passenger_profile = request.user.profile
+        seat_price_int = int(seat_price)  # Convert Decimal to int
+        if passenger_profile.balance < seat_price_int:
+            return JsonResponse({'error': 'Insufficient balance to complete payment'}, status=400)
+        
+        # Calculate amounts (convert to integers for MKD)
+        seat_price_int = int(seat_price)  # Convert Decimal to int
+        driver_amount = int(seat_price_int * 0.9)  # 90% to driver
+        platform_fee = int(seat_price_int * 0.1)   # 10% platform fee
+        
+        # Process the transaction
+        from rides.models import Transaction
+        
+        # Create transaction record
+        transaction = Transaction.objects.create(
+            booking=booking,
+            passenger=request.user,
+            driver=booking.ride.driver,
+            amount=seat_price_int,
+            driver_amount=driver_amount,
+            platform_fee=platform_fee,
+            transaction_type='ride_payment'
+        )
+        
+        # Update balances
+        passenger_profile.balance -= seat_price_int
+        passenger_profile.save()
+        
+        driver_profile = booking.ride.driver.profile
+        driver_profile.balance += driver_amount
+        driver_profile.save()
+        
         # Create or update review
         review, created = Review.objects.get_or_create(
             passenger=request.user,
@@ -287,10 +334,59 @@ def submit_review(request, booking_id):
             review.comment = comment
             review.save()
         
-        messages.success(request, 'Review submitted successfully!')
+        messages.success(request, 'Review submitted and payment processed successfully!')
         return JsonResponse({'success': True})
         
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
         return JsonResponse({'error': f'Error submitting review: {str(e)}'}, status=500)
+
+
+@login_required
+@require_POST
+def top_up_balance(request):
+    """Top up passenger balance"""
+    if request.user.profile.role != 'passenger':
+        return JsonResponse({'error': 'Only passengers can top up balance'}, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        amount = data.get('amount')
+        
+        if not amount:
+            return JsonResponse({'error': 'Amount is required'}, status=400)
+        
+        try:
+            amount = int(float(amount))  # Convert to int for MKD (no decimals)
+            if amount <= 0:
+                return JsonResponse({'error': 'Amount must be positive'}, status=400)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid amount'}, status=400)
+        
+        # Update balance
+        profile = request.user.profile
+        profile.balance += amount
+        profile.save()
+        
+        # Create transaction record for top-up
+        from rides.models import Transaction
+        
+        # Create a transaction without a booking for top-up
+        transaction = Transaction.objects.create(
+            booking=None,  # Top-up doesn't have a booking
+            passenger=request.user,
+            driver=request.user,  # Same user for top-up
+            amount=amount,
+            driver_amount=amount,
+            platform_fee=0,
+            transaction_type='top_up'
+        )
+        
+        messages.success(request, f'Balance topped up successfully! Added {amount} MKD')
+        return JsonResponse({'success': True, 'new_balance': profile.balance})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error topping up balance: {str(e)}'}, status=500)

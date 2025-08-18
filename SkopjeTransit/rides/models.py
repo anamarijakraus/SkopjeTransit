@@ -98,3 +98,26 @@ class BusSchedule(models.Model):
 
     def __str__(self):
         return f"{self.bus.name} - {self.stop.name} at {self.arrival_time}"
+
+
+class Transaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('ride_payment', 'Ride Payment'),
+        ('refund', 'Refund'),
+        ('top_up', 'Top Up'),
+    ]
+    
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='transactions', null=True, blank=True)
+    passenger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions_made')
+    driver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions_received')
+    amount = models.IntegerField()  # Total amount paid (MKD - no decimals)
+    driver_amount = models.IntegerField()  # Amount driver receives (90%)
+    platform_fee = models.IntegerField()  # Platform fee (10%)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, default='ride_payment')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.passenger.username} → {self.driver.username}: {self.amount} MKD"
+
+    class Meta:
+        ordering = ['-created_at']

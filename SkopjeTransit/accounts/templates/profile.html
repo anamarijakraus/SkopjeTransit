@@ -433,6 +433,15 @@
         <p class="profile-subtitle">Manage your rides and bookings</p>
 
         {% if user_type == 'passenger' %}
+            <!-- Passenger Balance Card -->
+            <div class="stats-card" style="margin-bottom: 2rem;">
+                <div class="stats-value">{{ balance }} MKD</div>
+                <div class="stats-label">Your Balance</div>
+                <button class="action-btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="showTopUpModal()">
+                    Top Up Balance
+                </button>
+            </div>
+            
             <!-- Passenger Tabs -->
             <div class="tabs-container">
                 <div class="tabs">
@@ -726,6 +735,43 @@
     </div>
 </div>
 
+<!-- Confirm Ride Modal -->
+<div id="confirmRideModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Ride</h3>
+            <button class="close-btn" onclick="closeConfirmRideModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <p style="margin-bottom: 1.5rem; color: #666; line-height: 1.5;">Are you sure you want to confirm this ride?</p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="action-btn btn-secondary" onclick="closeConfirmRideModal()">Cancel</button>
+            <button type="button" class="action-btn btn-success" onclick="confirmRideAction()">Yes, Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Top Up Modal -->
+<div id="topUpModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Top Up Balance</h3>
+            <button class="close-btn" onclick="closeTopUpModal()">&times;</button>
+        </div>
+        <form id="topUpForm">
+            <div class="form-group">
+                <label class="form-label" for="topUpAmount">Amount (MKD)</label>
+                <input type="number" class="form-input" id="topUpAmount" name="amount" min="1" step="1" placeholder="Enter amount..." required>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="action-btn btn-secondary" onclick="closeTopUpModal()">Cancel</button>
+                <button type="submit" class="action-btn btn-primary">Top Up</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 let currentBookingId = null;
 let currentRating = 0;
@@ -792,29 +838,45 @@ function highlightStars(rating) {
 }
 
 // Ride management functions
+let currentConfirmBookingId = null;
+
 function confirmRide(bookingId) {
     console.log('Confirming ride with booking ID:', bookingId);
-    if (confirm('Are you sure you want to confirm this ride?')) {
-        fetch(`{% url 'accounts:confirm_ride' 0 %}`.replace('0', bookingId), {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                console.error('Server error:', data.error);
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Network error:', error);
-            alert('An error occurred while confirming the ride. Please try again.');
-        });
+    currentConfirmBookingId = bookingId;
+    document.getElementById('confirmRideModal').style.display = 'flex';
+}
+
+function closeConfirmRideModal() {
+    document.getElementById('confirmRideModal').style.display = 'none';
+    currentConfirmBookingId = null;
+}
+
+function confirmRideAction() {
+    if (!currentConfirmBookingId) {
+        console.error('No booking ID set for confirmation');
+        return;
     }
+    
+    fetch(`{% url 'accounts:confirm_ride' 0 %}`.replace('0', currentConfirmBookingId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeConfirmRideModal();
+            location.reload();
+        } else {
+            console.error('Server error:', data.error);
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Network error:', error);
+        alert('An error occurred while confirming the ride. Please try again.');
+    });
 }
 
 function startRide(bookingId) {
@@ -845,7 +907,28 @@ function startRide(bookingId) {
 function endRide(bookingId) {
     currentBookingId = bookingId;
     console.log('Ending ride with booking ID:', bookingId);
-    document.getElementById('reviewModal').style.display = 'flex';
+    
+    // First end the ride by calling the backend
+    fetch(`{% url 'accounts:end_ride' 0 %}`.replace('0', bookingId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Ride ended successfully, now show the review modal
+            document.getElementById('reviewModal').style.display = 'flex';
+        } else {
+            console.error('Server error:', data.error);
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Network error:', error);
+        alert('An error occurred while ending the ride. Please try again.');
+    });
 }
 
 function closeReviewModal() {
@@ -853,6 +936,15 @@ function closeReviewModal() {
     document.getElementById('reviewForm').reset();
     currentRating = 0;
     setRating(0);
+}
+
+function showTopUpModal() {
+    document.getElementById('topUpModal').style.display = 'flex';
+}
+
+function closeTopUpModal() {
+    document.getElementById('topUpModal').style.display = 'none';
+    document.getElementById('topUpForm').reset();
 }
 
 // Review form submission
@@ -893,6 +985,45 @@ document.getElementById('reviewForm').addEventListener('submit', function(e) {
             console.error('Network error:', error);
             alert('An error occurred while submitting the review. Please try again.');
         });
+        });
+
+// Top up form submission
+document.getElementById('topUpForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const amount = document.getElementById('topUpAmount').value;
+    
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+    
+    const formData = {
+        amount: amount
+    };
+    
+    fetch(`{% url 'accounts:top_up_balance' %}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeTopUpModal();
+            location.reload();
+        } else {
+            console.error('Server error:', data.error);
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Network error:', error);
+        alert('An error occurred while topping up balance. Please try again.');
+    });
 });
 
 // Utility function to get CSRF token

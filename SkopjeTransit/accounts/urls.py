@@ -15,4 +15,5 @@ urlpatterns = [
     path('start-ride/<int:booking_id>/', views.start_ride, name='start_ride'),
     path('end-ride/<int:booking_id>/', views.end_ride, name='end_ride'),
     path('submit-review/<int:booking_id>/', views.submit_review, name='submit_review'),
+    path('top-up-balance/', views.top_up_balance, name='top_up_balance'),
 ]

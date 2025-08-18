@@ -199,6 +199,12 @@
                                 <div class="ride-date">
                                     Departure: {{ booking.ride.departure_time|date:"M d, Y H:i" }}<br>
                                     Booked on: {{ booking.created_at|date:"M d, Y H:i" }}
+                                    {% if booking.status == 'completed' and booking.completed_at %}
+                                        <br>Completed on: {{ booking.completed_at|date:"M d, Y H:i" }}
+                                        {% if booking.transactions.exists %}
+                                            <br><strong>Payment: {{ booking.transactions.first.amount }} MKD</strong>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="ride-price">
@@ -234,6 +240,14 @@
                                 <div class="ride-date">
                                     Departure: {{ ride.departure_time|date:"M d, Y H:i" }}<br>
                                     Created: {{ ride.created_at|date:"M d, Y H:i" }}
+                                    {% if ride.status == 'completed' and ride.end_time %}
+                                        <br>Completed on: {{ ride.end_time|date:"M d, Y H:i" }}
+                                        {% for booking in ride.bookings.all %}
+                                            {% if booking.transactions.exists %}
+                                                <br><strong>Earned: {{ booking.transactions.first.driver_amount }} MKD</strong>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="ride-price">
