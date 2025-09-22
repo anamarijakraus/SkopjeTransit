@@ -1,14 +1,8 @@
-from django.shortcuts import render
-
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import RideForm
-from .models import Ride, Stop
+from .forms import RideForm, BookingForm
+from .models import Ride, Stop, Booking
 from accounts.models import Profile
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Ride, Booking
-from .forms import BookingForm
 
 @login_required
 def create_ride(request):

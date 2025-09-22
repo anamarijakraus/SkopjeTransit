@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rides.models import Ride, Stop, Bus, BusSchedule
 from datetime import datetime, time
 from django.utils import timezone
+import json
 
 
 def home_view(request):
@@ -85,8 +86,6 @@ def home_view(request):
         })
 
     return render(request, 'home.html', {'stops': stops})
-
-import json
 
 STOP_COORDINATES = {
 "Gjorce Petrov Polyclinic": (42.009960610861896, 21.362986632943255),
