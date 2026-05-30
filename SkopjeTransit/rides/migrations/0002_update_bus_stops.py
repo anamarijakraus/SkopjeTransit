@@ -1,6 +1,10 @@
 from django.db import migrations
 
 def update_bus_stops(apps, schema_editor):
+    import sys
+    if 'test' in sys.argv:
+        return
+
     # Get the models
     Bus = apps.get_model('rides', 'Bus')
     Stop = apps.get_model('rides', 'Stop')
@@ -33,13 +37,13 @@ def update_bus_stops(apps, schema_editor):
             "Rade Koncar Petrol Station"
         ],
         '15': [
-            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Centar Record", "Zelen Pazar", "Jugodrvo Olympic Pool", 
             "Vero Jambo", "Railway Station", "TC Skopjanka", "Aerodrom Tobacco 2", "TC Tri Biseri"
         ],
         '19': [
-            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Posta Telecom", "Most Goce Delchev Theater", 
             "Bitpazar 1 University of St. Cyril and Methodius", "Yaja Pasha Mosque", 

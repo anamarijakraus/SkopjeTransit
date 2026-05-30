@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from core.views_assistant import assistant_view, clear_chat_view
+from core.services import transit
 from rides.models import Ride, Stop, Bus, BusSchedule
-from datetime import datetime, time
+from datetime import datetime
 from django.utils import timezone
 import json
 
@@ -40,39 +42,9 @@ def home_view(request):
 
             if is_start_valid:
                 matching_rides.append(ride)
-        # --- JSP Bus Matching ---
-        buses_with_matching_route = []
-
-        # Convert requested time to time object for comparison
-        import time as time_module
-        requested_time_obj = time_module.time()
-        requested_hour = int(requested_time_obj // 3600) % 24
-        requested_minute = int((requested_time_obj % 3600) // 60)
-        requested_time_only = time(requested_hour, requested_minute)
-
-        print(f"DEBUG: Looking for buses from '{start}' after {requested_time_only}")
-        print(f"DEBUG: Total buses in database: {Bus.objects.count()}")
-        
-        for bus in Bus.objects.all():
-            schedules = BusSchedule.objects.filter(bus=bus).order_by('arrival_time')
-            print(f"DEBUG: Bus {bus.name} has {schedules.count()} schedules")
-            
-            for schedule in schedules:
-                print(f"DEBUG: Checking schedule - Stop: '{schedule.stop.name}', Time: {schedule.arrival_time}")
-                # Check if this stop matches the start location (case-insensitive)
-                if schedule.stop.name.lower() == start.lower() and schedule.arrival_time >= requested_time_only:
-                    print(f"DEBUG: MATCH FOUND! Bus {bus.name} at {schedule.stop.name}")
-                    buses_with_matching_route.append({
-                        'bus': bus,
-                        'start_time': schedule.arrival_time,
-                        'start': start,
-                    })
-                    break
-
-        print(f"DEBUG: Found {len(buses_with_matching_route)} matching buses")
-        
-        # Sort buses by soonest start_time
-        buses_with_matching_route = sorted(buses_with_matching_route, key=lambda b: b['start_time'])
+        # Fixed bus matching: checks BOTH stops and correct stop order
+        requested_time_str = departure_datetime.strftime("%H:%M")
+        buses_with_matching_route = transit.find_buses(start, end, requested_time_str)
 
         return render(request, 'ride_results.html', {
             'rides': matching_rides,
@@ -99,7 +71,7 @@ STOP_COORDINATES = {
     "Bucharest Polyclinic": (42.002339451681536, 21.399977657069385),
     "Taftalidze T": (42.00152935857006, 21.384565404640817),
     "Taftalidze Market": (42.00100550117513, 21.389712077594297),
-    "Karposh 4 TC City Mall T": (42.0053290296922, 21.39072284092892),
+    "Karposh 3 TC City Mall T": (42.0053290296922, 21.39072284092892),
     "Restaurant Imes": (42.00751418026308, 21.394789405143506),
     "Primary School Lazo Trpovski": (42.00730366344567, 21.39920419939792),
     "Hospital 8mi Septemvri": (42.00402606408907, 21.40168589592222),
@@ -163,7 +135,7 @@ BUS_STOPS = {
 ],
 
 '15': [
-    "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", "Hospital 8mi Septemvri",
+    "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", "Hospital 8mi Septemvri",
     "Karposh 2", "Mal Odmor",
     "Bunjakovec Shopping Center", "Bunjakovec Porta", "Centar Record", "Zelen Pazar", "Jugodrvo Olympic Pool",
     "Vero Jambo",
@@ -171,7 +143,7 @@ BUS_STOPS = {
 ],
 
 '19': [
-    "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", "Hospital 8mi Septemvri",
+    "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", "Hospital 8mi Septemvri",
     "Karposh 2", "Mal Odmor",
     "Bunjakovec Shopping Center", "Bunjakovec Porta", "Posta Telecom", " Most Goce Delchev Theater",
     "Bitpazar 1 University of St. Cyril and Methodius",

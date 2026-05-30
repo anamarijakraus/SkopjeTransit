@@ -53,20 +53,20 @@ def setup_database():
             "Zelen Pazar", "Bilna Apteka", "Cheshma Kisela Voda Maxi"
         ],
         '7': [
-            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Centar Record", "Zelen Pazar", "Jugodrvo Olympic Pool", 
             "Vero Jambo", "Intercity Bus", "Tobacco Factory", "Dimitar Vlahov Secondary School", 
             "Rade Koncar Petrol Station"
         ],
         '15': [
-            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Centar Record", "Zelen Pazar", "Jugodrvo Olympic Pool", 
             "Vero Jambo", "Railway Station", "TC Skopjanka", "Aerodrom Tobacco 2", "TC Tri Biseri"
         ],
         '19': [
-            "Karposh 4 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
+            "Karposh 3 TC City Mall T", "Restaurant Imes", "Primary School Lazo Trpovski", 
             "Hospital 8mi Septemvri", "Karposh 2", "Mal Odmor", "Bunjakovec Shopping Center", 
             "Bunjakovec Porta", "Posta Telecom", "Most Goce Delchev Theater", 
             "Bitpazar 1 University of St. Cyril and Methodius", "Yaja Pasha Mosque", 
@@ -108,7 +108,7 @@ def setup_database():
         Stop(name="Bucharest Polyclinic"),
         Stop(name="Taftalidze T"),
         Stop(name="Taftalidze Market"),
-        Stop(name="Karposh 4 TC City Mall T"),
+        Stop(name="Karposh 3 TC City Mall T"),
         Stop(name="Restaurant Imes"),
         Stop(name="Primary School Lazo Trpovski"),
         Stop(name="Hospital 8mi Septemvri"),

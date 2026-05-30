@@ -1,0 +1,137 @@
+[
+  {
+    "category": "Booking & Cancellations",
+    "q": "How does booking a ride work?",
+    "a": "Search for a ride by entering your pickup stop, destination, date, and time. If a matching carpool ride is found, click 'Book' and confirm your pickup stop. Your booking is instantly confirmed and the driver's available seats are reduced by one. You can view all your bookings in 'My Rides'."
+  },
+  {
+    "category": "Booking & Cancellations",
+    "q": "What is the cancellation policy?",
+    "a": "Passengers can cancel a booking up to 1 hour before departure for a full refund. Cancellations made less than 1 hour before departure are non-refundable. Drivers who cancel within 2 hours of departure may receive a temporary penalty on their profile."
+  },
+  {
+    "category": "Booking & Cancellations",
+    "q": "What happens if the driver cancels my ride?",
+    "a": "If a driver cancels, you will be notified immediately and your booking will be marked as cancelled at no cost to you. We recommend searching for an alternative carpool ride or checking the bus schedule for the same route as a backup option."
+  },
+  {
+    "category": "Booking & Cancellations",
+    "q": "How do I view my bookings?",
+    "a": "Go to 'My Rides' from your profile menu to see all your bookings. Each booking shows the route, departure time, driver name, pickup stop, and current status. You can view past rides as well as upcoming ones."
+  },
+  {
+    "category": "Booking & Cancellations",
+    "q": "What do the different ride statuses mean?",
+    "a": "Rides go through several statuses: 'Pending' means the ride is posted but not yet started; 'Confirmed' means at least one passenger has booked; 'Ongoing' means the driver has started the trip; 'Completed' means the ride has finished; 'Cancelled' means the ride was cancelled by the driver. Your booking status updates automatically as the ride progresses."
+  },
+  {
+    "category": "Booking & Cancellations",
+    "q": "Can I book a ride at an intermediate stop?",
+    "a": "Yes! Drivers can set intermediate stops along their route. When searching, if a driver's route passes through both your pickup stop and your destination, you can board at your stop — you do not have to travel from the driver's starting point."
+  },
+  {
+    "category": "Payment & Pricing",
+    "q": "How does payment and pricing work?",
+    "a": "Drivers set their own seat price in MKD when creating a ride. Payment is handled directly between driver and passenger — either cash on boarding or via an agreed method. SkopjeTransit does not process payments directly at this time."
+  },
+  {
+    "category": "Payment & Pricing",
+    "q": "How does my wallet balance work?",
+    "a": "Your SkopjeTransit wallet stores MKD that can be used for ride payments on the platform. You can top up your balance from your Profile page. Your current balance is always visible on your profile. Refunds for cancelled rides are returned to your wallet automatically."
+  },
+  {
+    "category": "Payment & Pricing",
+    "q": "Is there a platform fee?",
+    "a": "SkopjeTransit charges a 10% platform fee on each completed ride. Drivers receive 90% of the seat price. This fee covers platform maintenance, support, and future improvements to the service."
+  },
+  {
+    "category": "Payment & Pricing",
+    "q": "How do I top up my balance?",
+    "a": "Go to your Profile page and click 'Top Up Balance'. Enter the amount in MKD you wish to add. Once confirmed, the funds appear in your wallet immediately and can be used for your next booking."
+  },
+  {
+    "category": "Safety",
+    "q": "Is SkopjeTransit safe to use?",
+    "a": "Safety is our priority. All drivers are verified with a licence check. We recommend always checking the driver's profile and ratings before booking, sharing your trip details with a friend, and meeting the driver at a public pickup stop. Report any concerns through the app immediately."
+  },
+  {
+    "category": "Safety",
+    "q": "How do driver ratings and reviews work?",
+    "a": "After a completed ride, passengers can leave a 1–5 star rating and a written comment for their driver. These reviews are visible on the driver's public profile and help other passengers make informed decisions. Honest, respectful reviews help keep the community trustworthy."
+  },
+  {
+    "category": "Safety",
+    "q": "What should I do if I feel unsafe during a ride?",
+    "a": "Your safety comes first. If you feel unsafe, ask the driver to stop at a safe public location and exit the vehicle. Contact emergency services if necessary. Afterwards, report the incident to SkopjeTransit support immediately at skopje@transit.mk or +389 75 180 423 so we can investigate and take action."
+  },
+  {
+    "category": "Safety",
+    "q": "Are passenger details shared with drivers?",
+    "a": "Drivers can see the passenger's display name and pickup stop once a booking is confirmed. Full personal details such as phone number or address are never shared automatically. We recommend communicating through the platform rather than sharing private contact details upfront."
+  },
+  {
+    "category": "For Drivers",
+    "q": "How do I become a driver on SkopjeTransit?",
+    "a": "To become a driver, register an account, go to your Profile page, and click 'Become a Driver'. You will need to provide a valid driver's licence number and vehicle details. Once verified, you can post carpool rides for other passengers to book."
+  },
+  {
+    "category": "For Drivers",
+    "q": "How do I post a carpool ride?",
+    "a": "Once you have driver status, go to 'My Rides' and click 'Post a Ride'. Enter your start location, end location, optional intermediate stops, departure date and time, number of available seats, and seat price in MKD. Passengers can book your ride immediately after it is posted."
+  },
+  {
+    "category": "For Drivers",
+    "q": "How do I start and end a ride?",
+    "a": "When you are ready to depart, open the ride in 'My Rides' and click 'Start Ride'. This marks the ride as ongoing so passengers know you are on the way. At the end of the journey, click 'End Ride' to mark it as completed. Payment and reviews are processed after the ride is completed."
+  },
+  {
+    "category": "For Drivers",
+    "q": "How do I switch between driver and passenger roles?",
+    "a": "You can switch roles from your Profile page. Click 'Switch to Passenger' or 'Switch to Driver' depending on your current role. Switching roles lets you both post rides as a driver and book seats as a passenger using the same account."
+  },
+  {
+    "category": "For Drivers",
+    "q": "How do I manage passenger bookings on my ride?",
+    "a": "Open any of your posted rides in 'My Rides' to see all passenger bookings. You can view each passenger's name, pickup stop, and booking status. If you need to cancel the ride, do so as early as possible to avoid penalties and give passengers time to arrange alternatives."
+  },
+  {
+    "category": "Bus Schedules",
+    "q": "How do bus schedules work on SkopjeTransit?",
+    "a": "SkopjeTransit shows JSP Skopje bus lines that serve your route. Enter your pickup and dropoff stop names and the assistant will find buses that stop at both, in the correct direction, showing you the exact pickup and dropoff times for each bus line."
+  },
+  {
+    "category": "Bus Schedules",
+    "q": "What bus lines are available on SkopjeTransit?",
+    "a": "SkopjeTransit includes the main JSP Skopje bus lines that cover the city and surrounding areas. The available lines depend on the stops in the database. Just tell the assistant your pickup and dropoff stop and it will show you which lines serve that route."
+  },
+  {
+    "category": "Bus Schedules",
+    "q": "What if there is no direct bus between my stops?",
+    "a": "If no direct bus connects your two stops, the assistant will show you all buses that depart from your pickup stop so you can consider connections. You can also ask the assistant to search for a carpool ride on the same route as an alternative."
+  },
+  {
+    "category": "Bus Schedules",
+    "q": "How do I search for a bus by stop name?",
+    "a": "Just tell the assistant the names of your pickup and dropoff stops — partial names work too. For example, saying 'Vlae' will match 'Vlae Porta'. If multiple stops match your input, the assistant will ask you to confirm which one you mean before showing results."
+  },
+  {
+    "category": "Support",
+    "q": "How can I contact SkopjeTransit support?",
+    "a": "You can reach our support team by email at skopje@transit.mk or by phone at +389 75 180 423, Monday to Friday 08:00–20:00. For urgent safety issues, please call directly rather than emailing."
+  },
+  {
+    "category": "Support",
+    "q": "How do I leave a review for my driver?",
+    "a": "After a ride is marked as completed, you will be able to leave a review from the ride detail page in 'My Rides'. Rate your driver from 1 to 5 stars and optionally add a written comment. Reviews help maintain quality and trust in the SkopjeTransit community."
+  },
+  {
+    "category": "Support",
+    "q": "How do I report a problem or inappropriate behaviour?",
+    "a": "Contact our support team immediately at skopje@transit.mk or call +389 75 180 423. Please include your booking ID, the date of the incident, and a description of what happened. For safety emergencies, always call local emergency services first before contacting us."
+  },
+  {
+    "category": "Support",
+    "q": "Can I request a refund?",
+    "a": "Refunds are issued automatically for cancellations that qualify under our cancellation policy — the amount is returned to your SkopjeTransit wallet. If you believe you are owed a refund that has not been processed, contact support at skopje@transit.mk with your booking ID and we will investigate promptly."
+  }
+]

@@ -1,0 +1,484 @@
+import json
+import re
+from datetime import date
+from openai import OpenAI, BadRequestError
+from django.conf import settings
+from . import transit
+
+MODEL = "meta-llama/llama-3.3-70b-instruct"
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=settings.OPENROUTER_API_KEY or "not-configured",
+)
+
+_KNOWN_TOOLS = {"search_rides", "book_ride", "get_bus_schedule", "answer_faq"}
+
+
+def _parse_inline_tool_call(content):
+    """
+    Some models write tool calls as JSON text in the reply instead of using the
+    tool_calls API field. This detects that pattern and returns (tool_name, params)
+    so the agent loop can execute the tool properly.
+    """
+    if not content:
+        return None
+    for m in re.finditer(r'\{', content):
+        start = m.start()
+        depth = 0
+        for i, ch in enumerate(content[start:]):
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    try:
+                        obj = json.loads(content[start:start + i + 1])
+                    except json.JSONDecodeError:
+                        break
+                    name = obj.get("name") or obj.get("function")
+                    params = obj.get("parameters") or obj.get("arguments") or obj.get("input")
+                    if name in _KNOWN_TOOLS and isinstance(params, dict):
+                        return name, params
+                    break
+    return None
+
+
+TOOLS = [
+    {"type": "function", "function": {
+        "name": "search_rides",
+        "description": (
+            "Search for available carpool rides. Pass the stop names exactly as the user said — "
+            "the tool will resolve partial names automatically and ask for clarification if needed."
+        ),
+        "parameters": {"type": "object", "properties": {
+            "pickup": {"type": "string", "description": "Pickup stop name (partial OK)"},
+            "dropoff": {"type": "string", "description": "Dropoff stop name (partial OK)"},
+            "date": {"type": "string", "description": "Date in YYYY-MM-DD format"},
+            "time": {"type": "string", "description": "Time in HH:MM format"},
+        }, "required": ["pickup", "dropoff", "date", "time"]},
+    }},
+    {"type": "function", "function": {
+        "name": "book_ride",
+        "description": "Book a carpool ride. Only call after user explicitly confirms.",
+        "parameters": {"type": "object", "properties": {
+            "ride_id": {"type": "integer"},
+            "pickup_stop": {"type": "string", "description": "Exact stop name where passenger boards"},
+        }, "required": ["ride_id", "pickup_stop"]},
+    }},
+    {"type": "function", "function": {
+        "name": "get_bus_schedule",
+        "description": (
+            "Get bus lines between two stops. Call automatically if no carpool found. "
+            "Pass the stop names exactly as the user said — partial names are resolved automatically."
+        ),
+        "parameters": {"type": "object", "properties": {
+            "pickup": {"type": "string", "description": "Pickup stop name (partial OK)"},
+            "dropoff": {"type": "string", "description": "Dropoff stop name (partial OK)"},
+            "time": {"type": "string", "description": "Optional HH:MM to find buses at or after this time"},
+        }, "required": ["pickup", "dropoff"]},
+    }},
+    {"type": "function", "function": {
+        "name": "answer_faq",
+        "description": "Answer a FAQ about the SkopjeTransit service.",
+        "parameters": {"type": "object", "properties": {
+            "question": {"type": "string"},
+        }, "required": ["question"]},
+    }},
+]
+
+
+def build_system_prompt(stop_names):
+    from datetime import timedelta
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    day_after = today + timedelta(days=2)
+    today_str    = today.strftime("%Y-%m-%d")
+    tomorrow_str = tomorrow.strftime("%Y-%m-%d")
+    day_after_str = day_after.strftime("%Y-%m-%d")
+    today_weekday    = today.strftime("%A")
+    tomorrow_weekday = tomorrow.strftime("%A")
+    day_after_weekday = day_after.strftime("%A")
+    stops_preview = ", ".join(stop_names[:25])
+    if len(stop_names) > 25:
+        stops_preview += f"... (+{len(stop_names) - 25} more)"
+    return f"""LANGUAGE: Respond in English only, always. Never use Macedonian or Cyrillic.
+
+You are the SkopjeTransit Ride Assistant — warm, conversational, and helpful.
+You help users: (1) find and book carpool rides, (2) check bus schedules, (3) answer FAQs.
+
+Current date reference (use these EXACT strings when calling tools — never calculate yourself):
+  "today"          → {today_str} ({today_weekday})
+  "tomorrow"       → {tomorrow_str} ({tomorrow_weekday})
+  "day after tomorrow" → {day_after_str} ({day_after_weekday})
+
+When the user says "today", always use {today_str}.
+When the user says "tomorrow", always use {tomorrow_str}.
+For "next [weekday]", count forward from {today_str} to find the correct YYYY-MM-DD.
+
+Known stop names (tools also accept partial names):
+{stops_preview}
+
+════════════════════════════════════════
+CRITICAL — TOOL CALLING RULES
+════════════════════════════════════════
+1. NEVER output tool calls as JSON text. Use the function-calling API only.
+   Never say "Here's the function call", never show JSON, never describe what you're about to call.
+   When you have all the info, just call the tool silently and present its result.
+
+2. NEVER call a tool until you have ALL required values confirmed in the conversation:
+   - search_rides requires: pickup stop, dropoff stop, date, AND departure time.
+   - get_bus_schedule requires: pickup stop AND dropoff stop ONLY — do NOT ask for date or time.
+
+If the user gives a vague request WITHOUT providing the required values, do NOT call any tool.
+This includes messages like:
+  "I want to book a carpool ride."
+  "Book a ride for me."
+  "Show me all available rides."
+  "Find a bus."
+  "Check the schedule."
+Instead, ask ONE friendly question to collect the first missing piece of information.
+Continue asking one question at a time until you have everything you need.
+
+Example flow:
+  User: "I want to book a carpool ride."
+  You:  "Of course! Which stop are you departing from?"
+  User: "Aerodrom"
+  You:  "Got it — and where are you headed?"
+  User: "City Park"
+  You:  "What date would you like to travel?"
+  User: "Tomorrow"
+  You:  "And what time do you want to depart?"
+  User: "5pm"
+  → Now call search_rides with all four values.
+
+NEVER call search_rides, book_ride, or get_bus_schedule the moment the user says they want
+to book or find a ride. You must collect ALL required fields first through conversation.
+
+════════════════════════════════════════
+DATE & TIME PARSING
+════════════════════════════════════════
+Always convert natural language dates and times to YYYY-MM-DD and HH:MM BEFORE calling any tool.
+Use the exact date strings from the reference table above — do NOT calculate dates yourself.
+
+  "today"          → {today_str}
+  "tomorrow"       → {tomorrow_str}
+  "day after tmrw" → {day_after_str}
+  "tonight"        → {today_str}
+  "5pm" / "17:00"  → 17:00
+  "6pm" / "18:00"  → 18:00
+  "half past 3"    → 15:30
+  "noon"           → 12:00
+  "midnight"       → 00:00
+
+For "next [weekday]" count forward from {today_str}.
+If the user gives all four values (pickup, dropoff, date, time) in one message, call the tool immediately.
+
+════════════════════════════════════════
+STOP DISAMBIGUATION
+════════════════════════════════════════
+- Tools accept partial names and resolve them automatically.
+- If a tool returns "disambiguation_needed": show the options as a numbered list and ask which one.
+  When the user replies (by number OR by name OR "the first one" etc.), map their answer to the
+  EXACT stop name from the list and call the tool again using that exact string — never the user's
+  raw words. For example, if options are ["Vlae", "Vlae Porta"] and the user says "the first one",
+  call the tool with pickup="Vlae".
+- If a tool returns "stop_not_found": tell the user politely and ask them to rephrase or try a
+  nearby landmark name.
+
+════════════════════════════════════════
+RIDE BOOKING FLOW
+════════════════════════════════════════
+1. Collect pickup, dropoff, date, time — one question at a time if needed.
+2. Call search_rides once you have all four.
+3. If carpool_found=true: show driver name, departure time, price (MKD), seats available.
+4. If carpool_found=false and buses_found=true and direct=true: show direct buses using
+   the BUS FORMAT below.
+5. If carpool_found=false and buses_found=true and direct=false: tell the user there's no
+   direct bus, but list buses departing from their stop using BUS FORMAT.
+6. If carpool_found=false and buses_found=false: apologise and say nothing was found.
+7. Only call book_ride when the user explicitly confirms (yes / book it / confirm).
+
+════════════════════════════════════════
+BUS FORMAT — MANDATORY
+════════════════════════════════════════
+List every bus result as a bullet using EXACTLY this pattern (24-hour HH:MM, → arrow):
+- Bus {{name}}: {{pickup_stop}} {{HH:MM}} → {{dropoff_stop}} {{HH:MM}}
+Example:
+- Bus 22: Vlae Porta 17:42 → Centar Record 18:42
+- Bus 4: Vlae 17:48 → Centar Record 18:42
+Rules: 24-hour time only, use the → character, nothing else on the same bullet line.
+One short intro sentence before the list. One short follow-up sentence after.
+
+════════════════════════════════════════
+FAQ BEHAVIOUR
+════════════════════════════════════════
+There are two distinct FAQ situations — handle them differently:
+
+1. User wants to BROWSE / SEE the FAQ list (e.g. "show me your questions", "what can I ask",
+   "I want to see your FAQ", "do you have an FAQ", "I'd like to ask a question",
+   "what questions do you have", "no I want to see your FAQ"):
+   → Respond with ONLY the single word: FAQ_LIST
+     Nothing before it, nothing after it. Do not call answer_faq.
+
+2. User asks a SPECIFIC question (e.g. "How do I cancel a ride?", "Can I pay with cash?"):
+   → Call answer_faq with that question.
+   → When answer_faq returns {{"answer": "..."}},  present that answer text EXACTLY as your reply.
+     Do NOT paraphrase it. Do NOT add suggestions to "check the FAQ" or "visit the website".
+     Just state the answer, then offer to help with anything else in one short sentence.
+
+════════════════════════════════════════
+BOOKING CONFIRMATION FORMAT
+════════════════════════════════════════
+When book_ride returns a result with "success": true, your ENTIRE reply must be ONLY this line:
+BOOKING_CONFIRMED:{{"booking_id":<id>,"from":"<from>","to":"<to>","departure":"<departure>","driver":"<driver>","price":"<price>","seats_left":<seats_left>}}
+
+Replace each placeholder with the exact value from the tool result.
+Do NOT add any other words, sentences, or punctuation — just that one line.
+The departure value comes from the tool result as-is (e.g. "2026-05-13T18:47").
+
+════════════════════════════════════════
+TONE
+════════════════════════════════════════
+- Be encouraging and natural. Use short sentences. Never sound robotic.
+- When asking follow-up questions, keep them light: "Got it! Where are you headed?"
+- After completing a task, offer to help with something else in one sentence."""
+
+
+def _resolve_stop(name: str):
+    """
+    Returns (resolved_name, status) where status is:
+      'ok'               – exactly one match, resolved_name is the DB name
+      'disambiguation'   – multiple matches, resolved_name is a list of options
+      'not_found'        – no matches
+    """
+    matches = transit.find_matching_stops(name)
+    if len(matches) == 1:
+        return matches[0], "ok"
+    if len(matches) > 1:
+        return matches, "disambiguation"
+    return [], "not_found"
+
+
+def dispatch_tool(tool_name, tool_input, user=None):
+    if tool_name == "search_rides":
+        pickup_raw = tool_input["pickup"].strip()
+        dropoff_raw = tool_input["dropoff"].strip()
+
+        if not pickup_raw or not dropoff_raw:
+            return json.dumps({"error": "Missing stop names. Ask the user for pickup and dropoff stops before calling this tool."})
+
+        # Resolve stops for bus fallback; carpool search uses raw names (fuzzy/case-insensitive)
+        pickup, pickup_status = _resolve_stop(pickup_raw)
+        if pickup_status == "disambiguation":
+            return json.dumps({"disambiguation_needed": True, "field": "pickup", "options": pickup})
+
+        dropoff, dropoff_status = _resolve_stop(dropoff_raw)
+        if dropoff_status == "disambiguation":
+            return json.dumps({"disambiguation_needed": True, "field": "dropoff", "options": dropoff})
+
+        # Always try carpool first using raw names — ride start/end locations are free text
+        # and may not match the bus Stop table
+        carpool_pickup = pickup if pickup_status == "ok" else pickup_raw
+        carpool_dropoff = dropoff if dropoff_status == "ok" else dropoff_raw
+        ride = transit.find_best_carpool(carpool_pickup, carpool_dropoff, tool_input["date"], tool_input["time"])
+        if ride:
+            return json.dumps({"carpool_found": True, "ride": ride})
+
+        # Bus fallback requires stops to exist in the Stop table
+        if pickup_status == "not_found":
+            return json.dumps({
+                "carpool_found": False,
+                "buses_found": False,
+                "message": f"No carpool found and '{pickup_raw}' is not served by any bus line.",
+            })
+        if dropoff_status == "not_found":
+            return json.dumps({
+                "carpool_found": False,
+                "buses_found": False,
+                "message": f"No carpool found and '{dropoff_raw}' is not served by any bus line.",
+            })
+
+        # Fallback 1: direct buses between the two stops
+        buses = transit.find_buses(pickup, dropoff, tool_input.get("time"))
+        if buses:
+            return json.dumps({
+                "carpool_found": False,
+                "buses_found": True,
+                "direct": True,
+                "buses": [
+                    {
+                        "bus_name": b["bus_name"],
+                        "pickup_stop": b["pickup_stop"],
+                        "dropoff_stop": b["dropoff_stop"],
+                        "pickup_time": b["pickup_time"],
+                        "dropoff_time": b["dropoff_time"],
+                    }
+                    for b in buses
+                ],
+            })
+
+        # Fallback 2: all departures from the pickup stop
+        departures = transit.find_departures_at_stop(pickup, tool_input.get("time"))
+        if departures:
+            return json.dumps({
+                "carpool_found": False,
+                "buses_found": True,
+                "direct": False,
+                "pickup_stop": pickup,
+                "note": "No direct bus to the destination, but these buses depart from your pickup stop.",
+                "buses": departures,
+            })
+
+        return json.dumps({
+            "carpool_found": False,
+            "buses_found": False,
+            "message": "No carpool rides or buses found at this stop and time.",
+        })
+
+    elif tool_name == "book_ride":
+        if not user or not user.is_authenticated:
+            return json.dumps({"success": False, "error": "Not authenticated."})
+        return json.dumps(transit.create_booking(user, tool_input["ride_id"], tool_input["pickup_stop"]))
+
+    elif tool_name == "get_bus_schedule":
+        pickup_raw = tool_input["pickup"].strip()
+        dropoff_raw = tool_input["dropoff"].strip()
+
+        pickup, pickup_status = _resolve_stop(pickup_raw)
+        if pickup_status == "disambiguation":
+            return json.dumps({"disambiguation_needed": True, "field": "pickup", "options": pickup})
+        if pickup_status == "not_found":
+            return json.dumps({"stop_not_found": True, "field": "pickup", "query": pickup_raw})
+
+        dropoff, dropoff_status = _resolve_stop(dropoff_raw)
+        if dropoff_status == "disambiguation":
+            return json.dumps({"disambiguation_needed": True, "field": "dropoff", "options": dropoff})
+        if dropoff_status == "not_found":
+            return json.dumps({"stop_not_found": True, "field": "dropoff", "query": dropoff_raw})
+
+        buses = transit.find_buses(pickup, dropoff, tool_input.get("time"))
+        if buses:
+            return json.dumps({"found": True, "buses": [
+                {
+                    "bus_name": b["bus_name"],
+                    "pickup_stop": b["pickup_stop"],
+                    "dropoff_stop": b["dropoff_stop"],
+                    "pickup_time": b["pickup_time"],
+                    "dropoff_time": b["dropoff_time"],
+                }
+                for b in buses
+            ]})
+        return json.dumps({"found": False, "message": "No direct bus found between these stops."})
+
+    elif tool_name == "answer_faq":
+        import os
+        from difflib import get_close_matches
+        faq_path = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../data/faq.json"))
+        with open(faq_path) as f:
+            faqs = json.load(f)
+        questions = [item["q"].lower() for item in faqs]
+        matches = get_close_matches(tool_input["question"].lower(), questions, n=1, cutoff=0.35)
+        if matches:
+            answer = next(item["a"] for item in faqs if item["q"].lower() == matches[0])
+            return json.dumps({"answer": answer})
+        return json.dumps({"answer": "I don't have a specific answer. Contact us at skopje@transit.mk or +389 75 180 423."})
+
+    return json.dumps({"error": f"Unknown tool: {tool_name}"})
+
+
+def _booking_confirmation(tool_name: str, result_json: str):
+    """Return a BOOKING_CONFIRMED: signal string if book_ride succeeded, else None."""
+    if tool_name != "book_ride":
+        return None
+    try:
+        data = json.loads(result_json)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not data.get("success"):
+        return None
+    return "BOOKING_CONFIRMED:" + json.dumps({
+        "booking_id": data["booking_id"],
+        "from":        data["from"],
+        "to":          data["to"],
+        "departure":   data["departure"],
+        "driver":      data["driver"],
+        "price":       data["price"],
+        "seats_left":  data["seats_left"],
+    })
+
+
+def run_agent(user_message, history, user=None):
+    stop_names = transit.get_all_stop_names()
+    system_prompt = build_system_prompt(stop_names)
+    messages = history + [{"role": "user", "content": user_message}]
+    inline_call_attempts = 0
+
+    while True:
+        try:
+            response = client.chat.completions.create(
+                model=MODEL,
+                messages=[{"role": "system", "content": system_prompt}] + messages,
+                tools=TOOLS,
+                tool_choice="auto",
+                max_tokens=1024,
+            )
+        except BadRequestError as exc:
+            if "tool_use_failed" in str(exc) and messages[-1].get("role") != "user":
+                raise
+            if "tool_use_failed" in str(exc):
+                messages.append({
+                    "role": "user",
+                    "content": "(Please call the tool using the standard function-calling interface.)",
+                })
+                continue
+            raise
+
+        msg = response.choices[0].message
+        assistant_msg = {"role": "assistant", "content": msg.content or ""}
+        if msg.tool_calls:
+            assistant_msg["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                }
+                for tc in msg.tool_calls
+            ]
+        messages.append(assistant_msg)
+
+        if not msg.tool_calls:
+            # Fallback: model wrote the tool call as JSON text instead of using the API
+            inline = _parse_inline_tool_call(msg.content or "")
+            if inline and inline_call_attempts < 2:
+                inline_call_attempts += 1
+                tool_name, tool_input = inline
+                fake_id = f"inline_{inline_call_attempts}"
+                # Rewrite last assistant message so history is clean for the next turn
+                messages[-1] = {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [{
+                        "id": fake_id,
+                        "type": "function",
+                        "function": {"name": tool_name, "arguments": json.dumps(tool_input)},
+                    }],
+                }
+                result = dispatch_tool(tool_name, tool_input, user=user)
+                messages.append({"role": "tool", "tool_call_id": fake_id, "content": result})
+                confirmation = _booking_confirmation(tool_name, result)
+                if confirmation:
+                    messages.append({"role": "assistant", "content": confirmation})
+                    return confirmation, messages
+                continue
+
+            return msg.content, messages
+
+        for tc in msg.tool_calls:
+            tool_input = json.loads(tc.function.arguments)
+            result = dispatch_tool(tc.function.name, tool_input, user=user)
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+            confirmation = _booking_confirmation(tc.function.name, result)
+            if confirmation:
+                messages.append({"role": "assistant", "content": confirmation})
+                return confirmation, messages

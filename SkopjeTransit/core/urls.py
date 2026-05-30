@@ -6,5 +6,6 @@ app_name = 'core'
 urlpatterns = [
     path('', views.home_view, name='home_view'),
     path('scam-safety/', views.scam_safety_view, name='scam_safety'),
+    path('assistant/', views.assistant_view, name='assistant'),
+    path('assistant/clear/', views.clear_chat_view, name='assistant_clear'),
 ]
-
