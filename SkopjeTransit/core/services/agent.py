@@ -192,10 +192,12 @@ RIDE BOOKING FLOW
 1. Collect pickup, dropoff, date, time — one question at a time if needed.
 2. Call search_rides once you have all four.
 3. If carpool_found=true: show driver name, departure time, price (MKD), seats available.
-4. If carpool_found=false and buses_found=true and direct=true: show direct buses using
-   the BUS FORMAT below.
-5. If carpool_found=false and buses_found=true and direct=false: tell the user there's no
-   direct bus, but list buses departing from their stop using BUS FORMAT.
+4. If carpool_found=false and buses_found=true and direct=true: FIRST say in one sentence
+   that no carpool rides are available for that route and time, THEN show direct buses as
+   a fallback using the BUS FORMAT below.
+5. If carpool_found=false and buses_found=true and direct=false: FIRST say in one sentence
+   that no carpool rides are available, THEN tell the user there's no direct bus but list
+   buses departing from their stop using BUS FORMAT.
 6. If carpool_found=false and buses_found=false: apologise and say nothing was found.
 7. Only call book_ride when the user explicitly confirms (yes / book it / confirm).
 
