@@ -187,13 +187,37 @@ def confirm_ride(request, booking_id):
     """Driver confirms a passenger's ride request"""
     if request.user.profile.role != 'driver':
         return JsonResponse({'error': 'Only drivers can confirm rides'}, status=403)
-    
+
     booking = get_object_or_404(Booking, id=booking_id, ride__driver=request.user)
+    if booking.status != 'pending':
+        return JsonResponse({'error': 'Only pending bookings can be confirmed'}, status=400)
+
     booking.status = 'confirmed'
     booking.confirmed_at = timezone.now()
     booking.save()
-    
+
     messages.success(request, f'Ride confirmed for {booking.passenger.username}')
+    return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def decline_ride(request, booking_id):
+    """Driver declines a passenger's ride request and restores the seat(s)"""
+    if request.user.profile.role != 'driver':
+        return JsonResponse({'error': 'Only drivers can decline rides'}, status=403)
+
+    booking = get_object_or_404(Booking, id=booking_id, ride__driver=request.user)
+    if booking.status != 'pending':
+        return JsonResponse({'error': 'Only pending bookings can be declined'}, status=400)
+
+    ride = booking.ride
+    ride.available_seats += booking.seats
+    ride.save()
+
+    booking.status = 'cancelled'
+    booking.save()
+
     return JsonResponse({'success': True})
 
 
@@ -284,19 +308,18 @@ def submit_review(request, booking_id):
         if hasattr(booking, 'transactions') and booking.transactions.exists():
             return JsonResponse({'error': 'Payment already processed for this ride'}, status=400)
         
-        # Get the seat price
-        seat_price = booking.ride.seat_price
-        
+        # Total price = seat price × number of seats booked
+        seat_price_int = int(booking.ride.seat_price)
+        total_amount = seat_price_int * booking.seats
+
         # Check if passenger has sufficient balance
         passenger_profile = request.user.profile
-        seat_price_int = int(seat_price)  # Convert Decimal to int
-        if passenger_profile.balance < seat_price_int:
+        if passenger_profile.balance < total_amount:
             return JsonResponse({'error': 'Insufficient balance to complete payment'}, status=400)
-        
-        # Calculate amounts (convert to integers for MKD)
-        seat_price_int = int(seat_price)  # Convert Decimal to int
-        driver_amount = int(seat_price_int * 0.9)  # 90% to driver
-        platform_fee = int(seat_price_int * 0.1)   # 10% platform fee
+
+        # Calculate amounts (90% driver, 10% platform fee)
+        driver_amount = int(total_amount * 0.9)
+        platform_fee = int(total_amount * 0.1)
         
         # Process the transaction
         from rides.models import Transaction
@@ -306,14 +329,14 @@ def submit_review(request, booking_id):
             booking=booking,
             passenger=request.user,
             driver=booking.ride.driver,
-            amount=seat_price_int,
+            amount=total_amount,
             driver_amount=driver_amount,
             platform_fee=platform_fee,
             transaction_type='ride_payment'
         )
-        
+
         # Update balances
-        passenger_profile.balance -= seat_price_int
+        passenger_profile.balance -= total_amount
         passenger_profile.save()
         
         driver_profile = booking.ride.driver.profile

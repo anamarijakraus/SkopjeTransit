@@ -45,10 +45,11 @@ class Booking(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
-    
+
     passenger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
     ride = models.ForeignKey(Ride, on_delete=models.CASCADE)
     stop = models.ForeignKey('Stop', on_delete=models.CASCADE)  # Where the passenger will get on
+    seats = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     confirmed_at = models.DateTimeField(null=True, blank=True)
@@ -76,6 +77,10 @@ class Review(models.Model):
 
 class Stop(models.Model):
     name = models.CharField(max_length=100)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
         return self.name

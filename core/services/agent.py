@@ -17,12 +17,14 @@ _KNOWN_TOOLS = {"search_rides", "book_ride", "get_bus_schedule", "answer_faq"}
 
 def _parse_inline_tool_call(content):
     """
-    Some models write tool calls as JSON text in the reply instead of using the
-    tool_calls API field. This detects that pattern and returns (tool_name, params)
-    so the agent loop can execute the tool properly.
+    Some models write tool calls as JSON text or Python-style function calls in the
+    reply instead of using the tool_calls API field. This detects both patterns and
+    returns (tool_name, params) so the agent loop can execute the tool properly.
     """
     if not content:
         return None
+
+    # Pattern 1: JSON object — {"name": "...", "parameters": {...}}
     for m in re.finditer(r'\{', content):
         start = m.start()
         depth = 0
@@ -41,6 +43,18 @@ def _parse_inline_tool_call(content):
                     if name in _KNOWN_TOOLS and isinstance(params, dict):
                         return name, params
                     break
+
+    # Pattern 2: Python-style call — tool_name(key="value", ...)
+    py_match = re.search(r'(\w+)\(([^)]*)\)', content)
+    if py_match:
+        name = py_match.group(1)
+        if name in _KNOWN_TOOLS:
+            params = {}
+            for kv in re.finditer(r'(\w+)\s*=\s*"((?:[^"\\]|\\.)*)"', py_match.group(2)):
+                params[kv.group(1)] = kv.group(2)
+            if params:
+                return name, params
+
     return None
 
 
@@ -60,11 +74,12 @@ TOOLS = [
     }},
     {"type": "function", "function": {
         "name": "book_ride",
-        "description": "Book a carpool ride. Only call after user explicitly confirms.",
+        "description": "Book a carpool ride. Only call after the user has confirmed how many seats they want AND explicitly confirmed the booking.",
         "parameters": {"type": "object", "properties": {
             "ride_id": {"type": "integer"},
             "pickup_stop": {"type": "string", "description": "Exact stop name where passenger boards"},
-        }, "required": ["ride_id", "pickup_stop"]},
+            "seats": {"type": "integer", "description": "Number of seats to book"},
+        }, "required": ["ride_id", "pickup_stop", "seats"]},
     }},
     {"type": "function", "function": {
         "name": "get_bus_schedule",
@@ -192,6 +207,8 @@ RIDE BOOKING FLOW
 1. Collect pickup, dropoff, date, time — one question at a time if needed.
 2. Call search_rides once you have all four.
 3. If carpool_found=true: show driver name, departure time, price (MKD), seats available.
+   Then ask: "How many seats would you like to book?"
+   Wait for their answer before proceeding.
 4. If carpool_found=false and buses_found=true and direct=true: FIRST say in one sentence
    that no carpool rides are available for that route and time, THEN show direct buses as
    a fallback using the BUS FORMAT below.
@@ -199,7 +216,10 @@ RIDE BOOKING FLOW
    that no carpool rides are available, THEN tell the user there's no direct bus but list
    buses departing from their stop using BUS FORMAT.
 6. If carpool_found=false and buses_found=false: apologise and say nothing was found.
-7. Only call book_ride when the user explicitly confirms (yes / book it / confirm).
+7. Only call book_ride after BOTH conditions are met:
+   - You know how many seats the user wants.
+   - The user has explicitly confirmed (yes / book it / confirm).
+   Never assume 1 seat — always ask first.
 
 ════════════════════════════════════════
 BUS FORMAT — MANDATORY
@@ -233,7 +253,10 @@ There are two distinct FAQ situations — handle them differently:
 BOOKING CONFIRMATION FORMAT
 ════════════════════════════════════════
 When book_ride returns a result with "success": true, your ENTIRE reply must be ONLY this line:
-BOOKING_CONFIRMED:{{"booking_id":<id>,"from":"<from>","to":"<to>","departure":"<departure>","driver":"<driver>","price":"<price>","seats_left":<seats_left>}}
+BOOKING_CONFIRMED:{{"booking_id":<id>,"from":"<from>","to":"<to>","departure":"<departure>","driver":"<driver>","price":"<price>","seats_booked":<seats_booked>,"seats_left":<seats_left>}}
+
+Note: the booking is created as PENDING — the driver must confirm it before it is active.
+The card shown to the user already communicates this, so do not add any extra message.
 
 Replace each placeholder with the exact value from the tool result.
 Do NOT add any other words, sentences, or punctuation — just that one line.
@@ -341,7 +364,8 @@ def dispatch_tool(tool_name, tool_input, user=None):
     elif tool_name == "book_ride":
         if not user or not user.is_authenticated:
             return json.dumps({"success": False, "error": "Not authenticated."})
-        return json.dumps(transit.create_booking(user, tool_input["ride_id"], tool_input["pickup_stop"]))
+        seats = max(1, int(tool_input.get("seats", 1)))
+        return json.dumps(transit.create_booking(user, tool_input["ride_id"], tool_input["pickup_stop"], seats=seats))
 
     elif tool_name == "get_bus_schedule":
         pickup_raw = tool_input["pickup"].strip()
@@ -400,13 +424,14 @@ def _booking_confirmation(tool_name: str, result_json: str):
     if not data.get("success"):
         return None
     return "BOOKING_CONFIRMED:" + json.dumps({
-        "booking_id": data["booking_id"],
-        "from":        data["from"],
-        "to":          data["to"],
-        "departure":   data["departure"],
-        "driver":      data["driver"],
-        "price":       data["price"],
-        "seats_left":  data["seats_left"],
+        "booking_id":   data["booking_id"],
+        "from":         data["from"],
+        "to":           data["to"],
+        "departure":    data["departure"],
+        "driver":       data["driver"],
+        "price":        data["price"],
+        "seats_booked": data.get("seats_booked", 1),
+        "seats_left":   data["seats_left"],
     })
 
 

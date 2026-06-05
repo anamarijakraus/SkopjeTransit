@@ -653,7 +653,7 @@
                                         <button class="action-btn btn-success" onclick="confirmRide('{{ booking.id }}')">
                                             Confirm Ride
                                         </button>
-                                        <button class="action-btn btn-danger">
+                                        <button class="action-btn btn-danger" onclick="declineRide('{{ booking.id }}')">
                                             Decline
                                         </button>
                                     </div>
@@ -732,6 +732,40 @@
                 <button type="submit" class="action-btn btn-primary">Submit Review</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Start Ride Modal -->
+<div id="startRideModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Start Ride</h3>
+            <button class="close-btn" onclick="closeStartRideModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <p style="margin-bottom: 1.5rem; color: #666; line-height: 1.5;">Are you ready to start this ride?</p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="action-btn btn-secondary" onclick="closeStartRideModal()">Cancel</button>
+            <button type="button" class="action-btn btn-success" onclick="startRideAction()">Yes, Start Ride</button>
+        </div>
+    </div>
+</div>
+
+<!-- Decline Ride Modal -->
+<div id="declineRideModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Decline Request</h3>
+            <button class="close-btn" onclick="closeDeclineRideModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <p style="margin-bottom: 1.5rem; color: #666; line-height: 1.5;">Are you sure you want to decline this booking request? The seat(s) will be returned to the ride.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="action-btn btn-secondary" onclick="closeDeclineRideModal()">Cancel</button>
+            <button type="button" class="action-btn btn-danger" onclick="declineRideAction()">Yes, Decline</button>
+        </div>
     </div>
 </div>
 
@@ -839,9 +873,9 @@ function highlightStars(rating) {
 
 // Ride management functions
 let currentConfirmBookingId = null;
+let currentDeclineBookingId = null;
 
 function confirmRide(bookingId) {
-    console.log('Confirming ride with booking ID:', bookingId);
     currentConfirmBookingId = bookingId;
     document.getElementById('confirmRideModal').style.display = 'flex';
 }
@@ -849,6 +883,35 @@ function confirmRide(bookingId) {
 function closeConfirmRideModal() {
     document.getElementById('confirmRideModal').style.display = 'none';
     currentConfirmBookingId = null;
+}
+
+function declineRide(bookingId) {
+    currentDeclineBookingId = bookingId;
+    document.getElementById('declineRideModal').style.display = 'flex';
+}
+
+function closeDeclineRideModal() {
+    document.getElementById('declineRideModal').style.display = 'none';
+    currentDeclineBookingId = null;
+}
+
+function declineRideAction() {
+    if (!currentDeclineBookingId) return;
+
+    fetch(`{% url 'accounts:decline_ride' 0 %}`.replace('0', currentDeclineBookingId), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeDeclineRideModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(() => alert('An error occurred while declining the ride. Please try again.'));
 }
 
 function confirmRideAction() {
@@ -879,29 +942,41 @@ function confirmRideAction() {
     });
 }
 
+let currentStartBookingId = null;
+
 function startRide(bookingId) {
-    console.log('Starting ride with booking ID:', bookingId);
-    if (confirm('Are you ready to start this ride?')) {
-        fetch(`{% url 'accounts:start_ride' 0 %}`.replace('0', bookingId), {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                console.error('Server error:', data.error);
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Network error:', error);
-            alert('An error occurred while starting the ride. Please try again.');
-        });
-    }
+    currentStartBookingId = bookingId;
+    document.getElementById('startRideModal').style.display = 'flex';
+}
+
+function closeStartRideModal() {
+    document.getElementById('startRideModal').style.display = 'none';
+    currentStartBookingId = null;
+}
+
+function startRideAction() {
+    if (!currentStartBookingId) return;
+
+    fetch(`{% url 'accounts:start_ride' 0 %}`.replace('0', currentStartBookingId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeStartRideModal();
+            location.reload();
+        } else {
+            console.error('Server error:', data.error);
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Network error:', error);
+        alert('An error occurred while starting the ride. Please try again.');
+    });
 }
 
 function endRide(bookingId) {

@@ -198,14 +198,16 @@ def find_departures_at_stop(stop_name: str, time_str: str = None) -> list:
     return results
 
 
-def create_booking(user, ride_id: int, pickup_name: str) -> dict:
+def create_booking(user, ride_id: int, pickup_name: str, seats: int = 1) -> dict:
     try:
         ride = Ride.objects.get(id=ride_id)
     except Ride.DoesNotExist:
         return {'success': False, 'error': 'Ride not found.'}
 
-    if ride.available_seats < 1:
-        return {'success': False, 'error': 'No seats available.'}
+    if ride.available_seats < seats:
+        if ride.available_seats == 0:
+            return {'success': False, 'error': 'No seats available.'}
+        return {'success': False, 'error': f'Only {ride.available_seats} seat(s) available on this ride.'}
 
     stop = find_stop(pickup_name)
     if stop is None:
@@ -215,9 +217,10 @@ def create_booking(user, ride_id: int, pickup_name: str) -> dict:
         passenger=user,
         ride=ride,
         stop=stop,
-        status='confirmed',
+        seats=seats,
+        status='pending',
     )
-    ride.available_seats -= 1
+    ride.available_seats -= seats
     ride.save()
 
     driver_name = ride.driver.get_full_name() or ride.driver.username
@@ -229,5 +232,6 @@ def create_booking(user, ride_id: int, pickup_name: str) -> dict:
         'departure': ride.departure_time.strftime('%Y-%m-%dT%H:%M'),
         'driver': driver_name,
         'price': str(ride.seat_price),
+        'seats_booked': seats,
         'seats_left': ride.available_seats,
     }

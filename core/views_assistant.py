@@ -1,6 +1,7 @@
 import json
 import os
 import random
+from datetime import datetime
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -59,6 +60,60 @@ _TRANSIT_WORDS = {
     'vlae', 'karposh', 'centar', 'aerodrom', 'chair', 'bunjakovec',
 }
 
+# ── Vague carpool-booking detection ──────────────────────────────────────────
+# Phrases that signal intent to book but carry no route/time info
+_VAGUE_CARPOOL_PHRASES = [
+    'i want to book a carpool',
+    'i want to book a ride',
+    'i want a carpool ride',
+    'i want a carpool',
+    'i want a ride',
+    'book a carpool ride',
+    'book a carpool',
+    'book a ride',
+    'find me a carpool',
+    'find me a ride',
+    'find a carpool',
+    'i need a carpool',
+    'i need a ride',
+    'get me a carpool',
+    'get me a ride',
+    'search for a ride',
+    'search for a carpool',
+    'show me rides',
+    'show me carpools',
+    'show all rides',
+]
+
+# Signals that the message already carries specific route/time info.
+# ' to ' is intentionally excluded — it matches "want to book" and is too ambiguous.
+_SPECIFIC_INDICATORS = [
+    ' from ',                   # "from Vlae"
+    ' at ',                     # "at 5pm" / "at Aerodrom"
+    'pm', 'am',                 # time of day
+    ':00', ':30', ':15', ':45', # HH:MM patterns
+    'today', 'tomorrow', 'yesterday',
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+]
+
+_VAGUE_CARPOOL_REPLIES = [
+    "Of course! Which stop are you departing from?",
+    "Happy to help! What stop will you be departing from?",
+    "Sure! Which stop are you starting from?",
+]
+
+SESSION_LAST_VAGUE = 'assistant_last_vague'
+
+
+def _is_vague_carpool(lower: str) -> bool:
+    """True when the message expresses intent to book but gives no route or time details."""
+    if not any(p in lower for p in _VAGUE_CARPOOL_PHRASES):
+        return False
+    # If the user already included route or time details, let the LLM handle it
+    if any(s in lower for s in _SPECIFIC_INDICATORS):
+        return False
+    return True
+
 
 def _has_greeting(lower: str) -> bool:
     words = set(lower.split())
@@ -87,10 +142,15 @@ def _pick(responses: list, session_key: str, session) -> str:
 
 def _shortcircuit_reply(message: str, session) -> str | None:
     """
-    Return a canned reply if the message is a pure greeting or goodbye.
+    Return a canned reply for greetings, goodbyes, and vague booking requests.
     Returns None if the message should be forwarded to the LLM agent.
     """
     lower = message.lower().strip()
+
+    # Vague carpool request — intercept before reaching the LLM
+    if _is_vague_carpool(lower):
+        return _pick(_VAGUE_CARPOOL_REPLIES, SESSION_LAST_VAGUE, session)
+
     is_greeting = _has_greeting(lower)
     is_goodbye  = _has_goodbye(lower)
     has_transit = _has_transit(lower)
@@ -113,17 +173,18 @@ def get_visible(raw_history):
     visible = []
     for msg in raw_history:
         if msg.get('role') == 'user' and not msg.get('content', '').startswith('__'):
-            visible.append({'role': 'user', 'content': msg['content']})
+            visible.append({'role': 'user', 'content': msg['content'], 'time': msg.get('time', '')})
         elif msg.get('role') == 'assistant' and msg.get('content'):
-            visible.append({'role': 'assistant', 'content': msg['content']})
+            visible.append({'role': 'assistant', 'content': msg['content'], 'time': msg.get('time', '')})
     return visible
 
 
 def _save_reply(request, user_message, reply, raw_history):
     """Persist a reply (canned or LLM) to the session."""
+    now = datetime.now().strftime('%H:%M')
     updated = raw_history + [
-        {'role': 'user',      'content': user_message},
-        {'role': 'assistant', 'content': reply},
+        {'role': 'user',      'content': user_message, 'time': now},
+        {'role': 'assistant', 'content': reply,         'time': now},
     ]
     request.session[SESSION_RAW] = updated[-30:]
     request.session[SESSION_VIS] = get_visible(updated[-30:])
@@ -170,7 +231,7 @@ def assistant_view(request):
     request.session.pop(SESSION_VIS, None)
     greeting_reply = random.choice(_PAGE_GREETINGS)
     request.session[SESSION_RAW] = []
-    request.session[SESSION_VIS] = [{'role': 'assistant', 'content': greeting_reply}]
+    request.session[SESSION_VIS] = [{'role': 'assistant', 'content': greeting_reply, 'time': datetime.now().strftime('%H:%M')}]
     request.session.modified = True
 
     from core.views import BUS_STOPS, STOP_COORDINATES  # local import avoids circular dep
