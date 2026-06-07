@@ -1,6 +1,24 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block page_decorations %}
+<img class="blob blob-tr" src="{% static 'photos/right_part_of_navbar.png' %}" alt="">
+<img class="blob blob-bl" src="{% static 'photos/right_part_of_navbar.png' %}" alt="">
+{% endblock %}
+
 {% block content %}
 <style>
+    .blob {
+        position: absolute;
+        pointer-events: none;
+        width: 340px;
+        height: 340px;
+        object-fit: cover;
+        z-index: 0;
+    }
+    .blob-tr { top: 0; right: 0; }
+    .blob-bl { bottom: 0; left: 0; transform: rotate(180deg); }
+    body { background: #F8F5F0; }
     .profile-container {
         min-height: calc(100vh - 80px);
         display: flex;
@@ -8,6 +26,8 @@
         justify-content: center;
         align-items: center;
         padding: 24px 12px;
+        position: relative;
+        z-index: 1;
     }
 
     .profile-card {
