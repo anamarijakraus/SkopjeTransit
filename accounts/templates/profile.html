@@ -40,22 +40,88 @@
         border: 1px solid #f0f0f0;
     }
 
+    .profile-hero {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .avatar-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #ff7f32, #ffaa60);
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(255, 127, 50, 0.35);
+        font-family: 'Inter', sans-serif;
+        letter-spacing: -0.02em;
+    }
+
+    .profile-hero-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .profile-name-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
     .profile-title {
-        font-size: 2rem;
+        font-size: 1.3rem;
         font-weight: 800;
         color: #1a1a2e;
-        margin-bottom: 0.5rem;
-        text-align: center;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.2;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #f3f4f6;
+        color: #555;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 0.18rem 0.65rem;
+        font-size: 0.72rem;
+        font-weight: 600;
         font-family: 'Inter', sans-serif;
     }
 
+    .role-badge i { color: #ff7f32; }
+
     .profile-subtitle {
-        color: #888;
-        margin-bottom: 2rem;
-        text-align: center;
-        font-size: 1.1rem;
+        color: #999;
+        margin: 0;
+        font-size: 0.88rem;
         font-family: 'Inter', sans-serif;
     }
+
+    .profile-stats {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.3rem;
+        font-size: 0.82rem;
+        color: #666;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .profile-stats .dot { color: #ccc; }
+    .profile-stats i { color: #f59e0b; font-size: 0.75rem; }
 
     .profile-section {
         margin-bottom: 2rem;
@@ -88,39 +154,105 @@
         background: rgba(255, 127, 50, 0.15);
     }
 
-    .stats-card {
-        background: #f8fafc;
-        border: 1px solid #e0e0e0;
-        border-radius: 0.8rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
+    .balance-card {
+        background: #fff3ec;
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.75rem;
         font-family: 'Inter', sans-serif;
     }
 
-    .stats-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #ff7f32;
-        margin-bottom: 0.25rem;
+    .balance-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #999;
+        margin-bottom: 0.4rem;
     }
 
-    .stats-label {
-        color: #666;
-        font-size: 0.9rem;
+    .balance-label i { font-size: 0.85rem; }
+
+    .balance-amount {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
     }
+
+    .balance-number {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #323232;
+        line-height: 1;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .balance-currency {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ff7f32;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .balance-actions {
+        display: flex;
+        gap: 0.6rem;
+    }
+
+    .btn-topup {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        background: #ff7f32;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        font-family: 'Inter', sans-serif;
+        transition: background 0.15s;
+    }
+    .btn-topup:hover { background: #e86b1e; }
+
+    .btn-history {
+        padding: 0.65rem 1rem;
+        background: #fff;
+        color: #555;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-family: 'Inter', sans-serif;
+        text-decoration: none;
+        transition: border-color 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+    .btn-history:hover { border-color: #ff7f32; color: #ff7f32; }
 
     .ride-item {
         background: #fff;
         border: 1px solid #e0e0e0;
+        border-left: 4px solid #ff7f32;
         border-radius: 0.8rem;
         padding: 1.5rem;
         margin-bottom: 1rem;
         font-family: 'Inter', sans-serif;
-        transition: box-shadow 0.2s;
+        transition: box-shadow 0.2s, transform 0.15s;
     }
 
     .ride-item:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+        transform: translateY(-1px);
     }
 
     .ride-header {
@@ -188,33 +320,37 @@
 
     .tabs {
         display: flex;
-        border-bottom: 2px solid #e0e0e0;
+        gap: 0.4rem;
+        background: #f2f2f2;
+        border-radius: 12px;
+        padding: 0.3rem;
         margin-bottom: 1.5rem;
         overflow-x: auto;
     }
 
     .tab {
-        padding: 0.75rem 1.5rem;
-        background: none;
+        flex: 1;
+        padding: 0.55rem 1rem;
+        background: transparent;
         border: none;
-        color: #666;
+        color: #888;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.18s;
         white-space: nowrap;
-        border-bottom: 3px solid transparent;
+        border-radius: 9px;
+        font-family: 'Inter', sans-serif;
     }
 
     .tab.active {
-        color: #ff7f32;
-        border-bottom-color: #ff7f32;
-        background: rgba(255, 127, 50, 0.05);
+        background: #fff;
+        color: #1a1a2e;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .tab:hover {
-        color: #ff7f32;
-        background: rgba(255, 127, 50, 0.05);
+    .tab:hover:not(.active) {
+        color: #1a1a2e;
     }
 
     .tab-content {
@@ -449,17 +585,48 @@
 
 <div class="profile-container">
     <div class="profile-card">
-        <h2 class="profile-title">Welcome, {{ request.user.username }}!</h2>
-        <p class="profile-subtitle">Manage your rides and bookings</p>
+        <div class="profile-hero">
+            <div class="avatar-circle">{{ request.user.username|first|upper }}</div>
+            <div class="profile-hero-info">
+                <div class="profile-name-row">
+                    <h2 class="profile-title">{{ request.user.get_full_name|default:request.user.username }}</h2>
+                    {% if user_type == 'passenger' %}
+                        <span class="role-badge"><i class="bi bi-check-circle-fill"></i> Passenger</span>
+                    {% else %}
+                        <span class="role-badge"><i class="bi bi-check-circle-fill"></i> Driver</span>
+                    {% endif %}
+                </div>
+                <p class="profile-subtitle">@{{ request.user.username }}</p>
+                <div class="profile-stats">
+                    {% if user_type == 'driver' %}
+                        <i class="bi bi-star-fill"></i> {{ reviews|length }} reviews
+                        <span class="dot">·</span>
+                        {{ current_rides|length }} rides
+                    {% else %}
+                        {{ confirmed_bookings|length }} rides
+                    {% endif %}
+                    <span class="dot">·</span>
+                    Since {{ request.user.date_joined|date:"Y" }}
+                </div>
+            </div>
+        </div>
 
         {% if user_type == 'passenger' %}
             <!-- Passenger Balance Card -->
-            <div class="stats-card" style="margin-bottom: 2rem;">
-                <div class="stats-value">{{ balance }} MKD</div>
-                <div class="stats-label">Your Balance</div>
-                <button class="action-btn btn-primary" style="margin-top: 1rem; width: 100%;" onclick="showTopUpModal()">
-                    Top Up Balance
-                </button>
+            <div class="balance-card">
+                <div class="balance-label"><i class="bi bi-wallet2"></i> Your balance</div>
+                <div class="balance-amount">
+                    <span class="balance-number">{{ balance }}</span>
+                    <span class="balance-currency">MKD</span>
+                </div>
+                <div class="balance-actions">
+                    <button class="btn-topup" onclick="showTopUpModal()">
+                        <i class="bi bi-plus"></i> Top up balance
+                    </button>
+                    <button class="btn-history">
+                        <i class="bi bi-clock-history"></i> History
+                    </button>
+                </div>
             </div>
             
             <!-- Passenger Tabs -->
@@ -596,6 +763,23 @@
             </div>
 
         {% elif user_type == 'driver' %}
+            <!-- Driver Earnings -->
+            <div class="balance-card">
+                <div class="balance-label"><i class="bi bi-cash-coin"></i> Total earnings</div>
+                <div class="balance-amount">
+                    <span class="balance-number">{{ total_earnings }}</span>
+                    <span class="balance-currency">MKD</span>
+                </div>
+                <div class="balance-actions">
+                    <button class="btn-topup">
+                        <i class="bi bi-arrow-up-circle"></i> Withdraw earnings
+                    </button>
+                    <button class="btn-history">
+                        <i class="bi bi-clock-history"></i> History
+                    </button>
+                </div>
+            </div>
+
             <!-- Driver Tabs -->
             <div class="tabs-container">
                 <div class="tabs">
@@ -606,11 +790,6 @@
 
                 <!-- Current Rides Tab -->
                 <div id="current" class="tab-content active">
-                    <div class="stats-card">
-                        <div class="stats-value">{{ total_earnings }} MKD</div>
-                        <div class="stats-label">Total Earnings</div>
-                    </div>
-
                     <div class="section-title">
                         Your Offered Rides
                         <a href="{% url 'accounts:ride_history' %}" class="history-link">View History</a>
