@@ -1,9 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
+
+{% block page_decorations %}
+<img class="blob blob-tr" src="{% static 'photos/right_part_of_navbar.png' %}" alt="">
+<img class="blob blob-bl" src="{% static 'photos/right_part_of_navbar.png' %}" alt="">
+{% endblock %}
+
 {% block content %}
 <style>
+    .blob {
+        position: absolute;
+        pointer-events: none;
+        width: 340px;
+        height: 340px;
+        object-fit: cover;
+        z-index: 0;
+    }
+    .blob-tr { top: 0; right: 0; }
+    .blob-bl { bottom: 0; left: 0; transform: rotate(180deg); }
+    body { background: #F8F5F0; }
+
     /* Page container aligns with profile/login look */
-    .page-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem 1rem; }
+    .page-container {
+        position: relative;
+        z-index: 1; max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem 1rem; }
     .page-title { font-size: 2.25rem; font-weight: 900; color: #1a1a2e; margin: 1rem 0 2rem 0; text-align: left; font-family: 'Inter', sans-serif; }
 
     /* Top three tips */
