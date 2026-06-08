@@ -213,9 +213,10 @@ def assistant_view(request):
         # Forward to LLM agent
         try:
             reply, updated_raw = run_agent(user_message, raw_history, user=request.user)
-        except Exception as exc:
+        except Exception:
+            msg = "Something went wrong on my end — please try again in a moment."
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'error': str(exc)}, status=500)
+                return JsonResponse({'reply': msg})
             return redirect('core:assistant')
 
         request.session[SESSION_RAW] = updated_raw[-30:]

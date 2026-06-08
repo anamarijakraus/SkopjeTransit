@@ -400,6 +400,26 @@
     .scroll-to-bottom.visible { opacity: 1; pointer-events: auto; }
     .scroll-to-bottom:hover { box-shadow: 0 4px 14px rgba(255,127,50,0.22); border-color: #ffcba8; transform: translateY(-1px); }
 
+    /* ── Ride option cards ── */
+    .ride-option-card {
+        display: flex; align-items: center; gap: 0.85rem;
+        background: #fff; border: 1.5px solid var(--border); border-radius: 14px;
+        padding: 0.75rem 1rem; width: 100%; text-align: left; cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        font-family: 'Inter', sans-serif;
+    }
+    .ride-option-card:hover { border-color: #ffcba8; box-shadow: 0 3px 10px rgba(255,127,50,0.14); transform: translateY(-1px); }
+    .roc-icon { width: 40px; height: 40px; background: var(--accent-light); border-radius: 11px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.05rem; flex-shrink: 0; }
+    .roc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.18rem; }
+    .roc-driver { font-weight: 700; font-size: 0.88rem; color: var(--primary); }
+    .roc-route  { font-size: 0.78rem; color: #999; }
+    .roc-meta   { display: flex; gap: 0.55rem; font-size: 0.76rem; color: #777; }
+    .roc-price  { color: var(--accent); font-weight: 700; }
+    .roc-time   { font-weight: 800; font-size: 0.94rem; color: var(--primary); flex-shrink: 0; letter-spacing: -0.01em; }
+    .roc-arrow  { color: var(--accent); font-size: 0.78rem; flex-shrink: 0; transition: transform 0.15s; }
+    .ride-option-card:hover .roc-arrow { transform: translateX(3px); }
+
     /* ── Bus cards ── */
     .result-cards { display: flex; flex-direction: column; gap: 0.45rem; margin: 0.5em 0 0.3em; }
     .bus-card {
@@ -826,6 +846,55 @@
         }
     }
 
+    /* ── Ride option cards ── */
+    function appendRideOptions(rides) {
+        var row = document.createElement('div');
+        row.className = 'msg-row assistant';
+
+        var cardsHtml = '';
+        rides.forEach(function(ride) {
+            var timeParts = (ride.departure_time || '').split('T');
+            var timeStr   = timeParts[1] ? timeParts[1].slice(0, 5) : (ride.departure_time || '');
+            var seats     = ride.available_seats;
+            cardsHtml +=
+                '<button class="ride-option-card" data-ride=\'' + JSON.stringify(ride).replace(/'/g, '&#39;') + '\'>' +
+                  '<div class="roc-icon"><i class="bi bi-car-front-fill"></i></div>' +
+                  '<div class="roc-body">' +
+                    '<div class="roc-driver">' + escHtml(ride.driver_name) + '</div>' +
+                    '<div class="roc-route">' + escHtml(ride.start_location) + ' → ' + escHtml(ride.end_location) + '</div>' +
+                    '<div class="roc-meta">' +
+                      '<span class="roc-price">' + escHtml(String(ride.seat_price)) + ' MKD/seat</span>' +
+                      '<span>' + seats + ' seat' + (seats !== 1 ? 's' : '') + ' available</span>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="roc-time">' + escHtml(timeStr) + '</div>' +
+                  '<i class="bi bi-arrow-right roc-arrow"></i>' +
+                '</button>';
+        });
+
+        var av    = '<div class="avatar bot"><i class="bi bi-robot"></i></div>';
+        var group =
+            '<div class="bubble-group">' +
+              '<div class="bubble">' +
+                '<p>Here are the available rides — tap one to select:</p>' +
+                '<div class="result-cards">' + cardsHtml + '</div>' +
+              '</div>' +
+              '<div class="msg-footer"><span class="msg-time">' + nowTime() + '</span></div>' +
+            '</div>';
+        row.innerHTML = av + group;
+        chatWindow.insertBefore(row, typingRow);
+        scrollBottom();
+    }
+
+    function selectRideOption(ride) {
+        var timeParts = (ride.departure_time || '').split('T');
+        var timeStr   = timeParts[1] ? timeParts[1].slice(0, 5) : (ride.departure_time || '');
+        var msg = "I’ll take the ride with " + ride.driver_name +
+                  ", departing at " + timeStr + " (ride ID: " + ride.id + ").";
+        removeInlineButtons();
+        doSend(msg, null);
+    }
+
     /* ── Booking confirmation card ── */
     function appendBookingCard(b) {
         var parts   = (b.departure || '').split('T');
@@ -900,24 +969,42 @@
         return text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>');
     }
 
-    var BUS_ROUTE = /^Bus\s+([^:]+):\s+(.+?)\s+(\d{1,2}:\d{2})\s*(?:→|-&gt;|->)\s*(.+?)\s+(\d{1,2}:\d{2})/i;
+    var BUS_ROUTE       = /^Bus\s+([^:]+):\s+(.+?)\s+(\d{1,2}:\d{2})\s*(?:→|-&gt;|->)\s*(.+?)\s+(\d{1,2}:\d{2})/i;
+    var BUS_DEPART_ONLY = /^Bus\s+([^:]+):\s+(.+?)\s+(\d{1,2}:\d{2})\s*$/i;
 
     function busCard(text) {
         var m = BUS_ROUTE.exec(text);
-        if (!m) return null;
-        var line = m[1].trim(), from = m[2].trim(), to = m[4].trim();
-        return '<div class="bus-card" data-line="' + line + '" data-from="' + from + '" data-to="' + to + '" title="Click to view route map">' +
-            '<div class="bc-badge">' + line + '</div>' +
-            '<div class="bc-body">' +
-              '<div class="bc-stops">' +
-                '<span class="bc-stop" title="' + from + '">' + from + '</span>' +
-                '<i class="bi bi-arrow-right bc-chevron"></i>' +
-                '<span class="bc-stop" title="' + to + '">' + to + '</span>' +
-              '</div>' +
-              '<div class="bc-times"><span class="bc-time-val dep">' + m[3] + '</span><span>›</span><span class="bc-time-val arr">' + m[5] + '</span></div>' +
-            '</div>' +
-            '<div class="bc-map-hint"><i class="bi bi-map-fill"></i></div>' +
-            '</div>';
+        if (m) {
+            var line = m[1].trim(), from = m[2].trim(), to = m[4].trim();
+            return '<div class="bus-card" data-line="' + line + '" data-from="' + from + '" data-to="' + to + '" title="Click to view route map">' +
+                '<div class="bc-badge">' + line + '</div>' +
+                '<div class="bc-body">' +
+                  '<div class="bc-stops">' +
+                    '<span class="bc-stop" title="' + from + '">' + from + '</span>' +
+                    '<i class="bi bi-arrow-right bc-chevron"></i>' +
+                    '<span class="bc-stop" title="' + to + '">' + to + '</span>' +
+                  '</div>' +
+                  '<div class="bc-times"><span class="bc-time-val dep">' + m[3] + '</span><span>›</span><span class="bc-time-val arr">' + m[5] + '</span></div>' +
+                '</div>' +
+                '<div class="bc-map-hint"><i class="bi bi-map-fill"></i></div>' +
+                '</div>';
+        }
+        // Fallback: departure-only format (no destination/arrival time)
+        var d = BUS_DEPART_ONLY.exec(text);
+        if (d) {
+            var dline = d[1].trim(), dfrom = d[2].trim();
+            return '<div class="bus-card" data-line="' + dline + '" data-from="' + dfrom + '" data-to="" title="Click to view route map">' +
+                '<div class="bc-badge">' + dline + '</div>' +
+                '<div class="bc-body">' +
+                  '<div class="bc-stops">' +
+                    '<span class="bc-stop" title="' + dfrom + '">' + dfrom + '</span>' +
+                  '</div>' +
+                  '<div class="bc-times"><span class="bc-time-val dep">' + d[3] + '</span></div>' +
+                '</div>' +
+                '<div class="bc-map-hint"><i class="bi bi-map-fill"></i></div>' +
+                '</div>';
+        }
+        return null;
     }
 
     function renderMarkdown(raw) {
@@ -972,6 +1059,7 @@
             typingRow.classList.remove('visible');
             var reply = data.reply ? data.reply.trim() : '';
             var bcIdx = reply.indexOf('BOOKING_CONFIRMED:');
+            var roIdx = reply.indexOf('RIDE_OPTIONS:');
             if (bcIdx !== -1) {
                 var jsonStr = reply.slice(bcIdx + 'BOOKING_CONFIRMED:'.length).trim();
                 var s = jsonStr.indexOf('{'), e = jsonStr.lastIndexOf('}');
@@ -979,6 +1067,13 @@
                 if (s !== -1 && e !== -1) { try { parsed = JSON.parse(jsonStr.slice(s, e + 1)); } catch(_) {} }
                 if (parsed) appendBookingCard(parsed);
                 else appendBubble('assistant', 'Your ride has been booked successfully!');
+            } else if (roIdx !== -1) {
+                var ridesJson = reply.slice(roIdx + 'RIDE_OPTIONS:'.length).trim();
+                var s2 = ridesJson.indexOf('['), e2 = ridesJson.lastIndexOf(']');
+                var rides = null;
+                if (s2 !== -1 && e2 !== -1) { try { rides = JSON.parse(ridesJson.slice(s2, e2 + 1)); } catch(_) {} }
+                if (rides && rides.length) appendRideOptions(rides);
+                else appendBubble('assistant', 'Sorry, I couldn\'t display the ride options. Please try again.');
             } else if (reply === 'FAQ_LIST') {
                 appendInlineButtons('faq-list');
             } else if (reply) {
@@ -1123,7 +1218,7 @@
     bmOverlay.addEventListener('click', function(e) { if (e.target === bmOverlay) closeBusMap(); });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeBusMap(); });
 
-    // Delegate click on chat window to catch dynamically added bus cards and copy buttons
+    // Delegate click on chat window to catch dynamically added cards and copy buttons
     chatWindow.addEventListener('click', function(e) {
         var copyBtn = e.target.closest('.copy-btn');
         if (copyBtn) {
@@ -1135,6 +1230,14 @@
                 copyBtn.classList.add('copied');
                 setTimeout(function () { ic.className = 'bi bi-copy'; copyBtn.classList.remove('copied'); }, 2000);
             }).catch(function () {});
+            return;
+        }
+        var rideCard = e.target.closest('.ride-option-card');
+        if (rideCard) {
+            try {
+                var ride = JSON.parse(rideCard.dataset.ride);
+                selectRideOption(ride);
+            } catch(_) {}
             return;
         }
         var card = e.target.closest('.bus-card');

@@ -797,7 +797,7 @@
                     
                     {% if current_rides %}
                         {% for ride in current_rides %}
-                            <div class="ride-item">
+                            <div class="ride-item" id="ride-card-{{ ride.id }}">
                                 <div class="ride-header">
                                     <div class="ride-info">
                                         <div class="ride-location">
@@ -811,8 +811,14 @@
                                             Departure: {{ ride.departure_time|date:"M d, Y H:i" }}
                                         </div>
                                     </div>
-                                    <div class="ride-price">
-                                        {{ ride.available_seats }} seats
+                                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                                        <div class="ride-price">{{ ride.available_seats }} seats</div>
+                                        {% if ride.status != 'ongoing' and ride.status != 'completed' %}
+                                        <button class="action-btn btn-danger" style="font-size:0.8rem; padding:0.35rem 0.8rem;"
+                                                onclick="deleteRide('{{ ride.id }}')">
+                                            <i class="bi bi-trash3"></i> Delete
+                                        </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -951,6 +957,25 @@
     </div>
 </div>
 
+<!-- Delete Ride Modal -->
+<div id="deleteRideModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Delete Ride</h3>
+            <button class="close-btn" onclick="closeDeleteRideModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <p style="margin-bottom: 1.5rem; color: #666; line-height: 1.5;">
+                Are you sure you want to delete this ride? Any pending or confirmed passenger bookings will be cancelled.
+            </p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="action-btn btn-secondary" onclick="closeDeleteRideModal()">Cancel</button>
+            <button type="button" class="action-btn btn-danger" onclick="deleteRideAction()">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
 <!-- Decline Ride Modal -->
 <div id="declineRideModal" class="modal-overlay">
     <div class="modal-content">
@@ -1073,6 +1098,35 @@ function highlightStars(rating) {
 // Ride management functions
 let currentConfirmBookingId = null;
 let currentDeclineBookingId = null;
+let currentDeleteRideId = null;
+
+function deleteRide(rideId) {
+    currentDeleteRideId = rideId;
+    document.getElementById('deleteRideModal').style.display = 'flex';
+}
+
+function closeDeleteRideModal() {
+    document.getElementById('deleteRideModal').style.display = 'none';
+    currentDeleteRideId = null;
+}
+
+function deleteRideAction() {
+    if (!currentDeleteRideId) return;
+    fetch(`{% url 'accounts:delete_ride' 0 %}`.replace('0', currentDeleteRideId), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    })
+    .then(response => response.json())
+    .then(data => {
+        closeDeleteRideModal();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Could not delete the ride.');
+        }
+    })
+    .catch(() => alert('An error occurred while deleting the ride. Please try again.'));
+}
 
 function confirmRide(bookingId) {
     currentConfirmBookingId = bookingId;

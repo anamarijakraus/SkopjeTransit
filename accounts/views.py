@@ -202,6 +202,28 @@ def confirm_ride(request, booking_id):
 
 @login_required
 @require_POST
+def delete_ride(request, ride_id):
+    """Driver cancels/deletes one of their offered rides."""
+    if request.user.profile.role != 'driver':
+        return JsonResponse({'error': 'Only drivers can delete rides'}, status=403)
+
+    from rides.models import Ride
+    ride = get_object_or_404(Ride, id=ride_id, driver=request.user)
+
+    if ride.status in ('ongoing', 'completed'):
+        return JsonResponse({'error': 'Cannot delete a ride that is ongoing or completed'}, status=400)
+
+    # Cancel all active bookings (no balance changes — payment only happens at review)
+    ride.booking_set.filter(status__in=['pending', 'confirmed']).update(status='cancelled')
+
+    ride.status = 'cancelled'
+    ride.save()
+
+    return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
 def decline_ride(request, booking_id):
     """Driver declines a passenger's ride request and restores the seat(s)"""
     if request.user.profile.role != 'driver':

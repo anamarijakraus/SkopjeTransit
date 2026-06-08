@@ -143,7 +143,8 @@ CRITICAL — TOOL CALLING RULES
 
 2. NEVER call a tool until you have ALL required values confirmed in the conversation:
    - search_rides requires: pickup stop, dropoff stop, date, AND departure time.
-   - get_bus_schedule requires: pickup stop AND dropoff stop ONLY — do NOT ask for date or time.
+   - get_bus_schedule requires: pickup stop AND dropoff stop. Do NOT ask the user for a time.
+     However, if the user already mentioned a time in their request, pass it as the "time" field.
 
 If the user gives a vague request WITHOUT providing the required values, do NOT call any tool.
 This includes messages like:
@@ -206,9 +207,23 @@ RIDE BOOKING FLOW
 ════════════════════════════════════════
 1. Collect pickup, dropoff, date, time — one question at a time if needed.
 2. Call search_rides once you have all four.
-3. If carpool_found=true: show driver name, departure time, price (MKD), seats available.
-   Then ask: "How many seats would you like to book?"
-   Wait for their answer before proceeding.
+   IMPORTANT — before calling search_rides, verify the requested date is today or in the future.
+   If the user gives a past calendar date (a date before today, {today_str}):
+     Respond with: "That date has already passed — please choose a future date."
+     Do NOT call search_rides. Do NOT suggest buses or anything else. Just ask for a valid date.
+   If search_rides returns {{"error": "past_date"}}, do exactly the same.
+   Note: if today's date is given but the time has already passed, still call search_rides — the app handles that gracefully.
+3. If carpool_found=true: output EXACTLY the following line and nothing else — no greeting,
+   no numbered list, no explanation, no follow-up sentence:
+   RIDE_OPTIONS:<paste the exact value of the "rides" key from the tool result as compact JSON>
+   Example: RIDE_OPTIONS:[{{"id":5,"driver_name":"Ana","departure_time":"2026-06-07T22:00:00","seat_price":"200","available_seats":3,"start_location":"Vlae","end_location":"Centar"}}]
+   The app will render interactive ride cards for the user to click and select.
+   After the user selects a ride they will send a message containing "ride ID: X".
+   When you see that, extract the ride_id, then ask: "How many seats would you like to book?"
+   Wait for their seat count, then show a confirmation summary BEFORE calling book_ride:
+     "Just to confirm — [N] seat(s) with [driver], departing at [HH:MM], total [N × price] MKD. Shall I book this?"
+   Only call book_ride after the user explicitly says yes / confirm / go ahead / book it.
+   Never call book_ride without this explicit confirmation.
 4. If carpool_found=false and buses_found=true and direct=true: FIRST say in one sentence
    that no carpool rides are available for that route and time, THEN show direct buses as
    a fallback using the BUS FORMAT below.
@@ -216,10 +231,9 @@ RIDE BOOKING FLOW
    that no carpool rides are available, THEN tell the user there's no direct bus but list
    buses departing from their stop using BUS FORMAT.
 6. If carpool_found=false and buses_found=false: apologise and say nothing was found.
-7. Only call book_ride after BOTH conditions are met:
-   - You know how many seats the user wants.
-   - The user has explicitly confirmed (yes / book it / confirm).
-   Never assume 1 seat — always ask first.
+7. Never assume 1 seat — always ask first.
+8. The bus fallback already filters by the passenger's requested time — buses shown will
+   depart at or after that time, so do not re-filter or explain the times.
 
 ════════════════════════════════════════
 BUS FORMAT — MANDATORY
@@ -229,7 +243,12 @@ List every bus result as a bullet using EXACTLY this pattern (24-hour HH:MM, →
 Example:
 - Bus 22: Vlae Porta 17:42 → Centar Record 18:42
 - Bus 4: Vlae 17:48 → Centar Record 18:42
-Rules: 24-hour time only, use the → character, nothing else on the same bullet line.
+Rules:
+- ALWAYS use this exact format for every bus, including departure-only results.
+- For departure-only buses (direct=false), the tool result includes "end_stop" and "end_time" —
+  use those as the dropoff_stop and dropoff time in the format above.
+- 24-hour time only. Use the → character (not -> or other arrows). Nothing else on the same bullet line.
+- No bold, no extra punctuation, no notes on the same line.
 One short intro sentence before the list. One short follow-up sentence after.
 
 ════════════════════════════════════════
@@ -293,6 +312,21 @@ def dispatch_tool(tool_name, tool_input, user=None):
         if not pickup_raw or not dropoff_raw:
             return json.dumps({"error": "Missing stop names. Ask the user for pickup and dropoff stops before calling this tool."})
 
+        if not tool_input.get("date"):
+            return json.dumps({"error": "Missing date. Ask the user what date they want to travel before calling this tool."})
+
+        if not tool_input.get("time"):
+            return json.dumps({"error": "Missing departure time. Ask the user what time they want to depart before calling this tool."})
+
+        # Reject if the requested calendar date is strictly before today
+        try:
+            from datetime import date as _date
+            req_date = _date.fromisoformat(tool_input['date'])
+            if req_date < _date.today():
+                return json.dumps({"error": "past_date", "message": "That date has already passed."})
+        except (ValueError, KeyError):
+            pass
+
         # Resolve stops for bus fallback; carpool search uses raw names (fuzzy/case-insensitive)
         pickup, pickup_status = _resolve_stop(pickup_raw)
         if pickup_status == "disambiguation":
@@ -303,12 +337,14 @@ def dispatch_tool(tool_name, tool_input, user=None):
             return json.dumps({"disambiguation_needed": True, "field": "dropoff", "options": dropoff})
 
         # Always try carpool first using raw names — ride start/end locations are free text
-        # and may not match the bus Stop table
-        carpool_pickup = pickup if pickup_status == "ok" else pickup_raw
-        carpool_dropoff = dropoff if dropoff_status == "ok" else dropoff_raw
-        ride = transit.find_best_carpool(carpool_pickup, carpool_dropoff, tool_input["date"], tool_input["time"])
-        if ride:
-            return json.dumps({"carpool_found": True, "ride": ride})
+        # Ride start/end locations are free-text entered by drivers — always match
+        # against the raw user input, not the resolved bus Stop name.
+        try:
+            rides = transit.find_carpools(pickup_raw, dropoff_raw, tool_input["date"], tool_input["time"])
+        except (ValueError, TypeError):
+            rides = []
+        if rides:
+            return json.dumps({"carpool_found": True, "rides": rides})
 
         # Bus fallback requires stops to exist in the Stop table
         if pickup_status == "not_found":
@@ -383,7 +419,9 @@ def dispatch_tool(tool_name, tool_input, user=None):
         if dropoff_status == "not_found":
             return json.dumps({"stop_not_found": True, "field": "dropoff", "query": dropoff_raw})
 
-        buses = transit.find_buses(pickup, dropoff, tool_input.get("time"))
+        from datetime import datetime as _dt
+        bus_time = tool_input.get("time") or _dt.now().strftime("%H:%M")
+        buses = transit.find_buses(pickup, dropoff, bus_time)
         if buses:
             return json.dumps({"found": True, "buses": [
                 {
@@ -435,7 +473,11 @@ def _booking_confirmation(tool_name: str, result_json: str):
     })
 
 
+_FALLBACK_MSG = "I'm having trouble connecting right now — please try again in a moment."
+
+
 def run_agent(user_message, history, user=None):
+    from openai import APITimeoutError, APIConnectionError, APIStatusError
     stop_names = transit.get_all_stop_names()
     system_prompt = build_system_prompt(stop_names)
     messages = history + [{"role": "user", "content": user_message}]
@@ -449,7 +491,16 @@ def run_agent(user_message, history, user=None):
                 tools=TOOLS,
                 tool_choice="auto",
                 max_tokens=1024,
+                timeout=30,
             )
+        except APITimeoutError:
+            return _FALLBACK_MSG, messages
+        except APIConnectionError:
+            return _FALLBACK_MSG, messages
+        except APIStatusError as exc:
+            if exc.status_code >= 500:
+                return _FALLBACK_MSG, messages
+            raise
         except BadRequestError as exc:
             if "tool_use_failed" in str(exc) and messages[-1].get("role") != "user":
                 raise

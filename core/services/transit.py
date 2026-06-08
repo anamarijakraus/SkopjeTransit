@@ -24,6 +24,11 @@ def find_stop(name: str):
         return None
 
 
+def _loc_match(query: str, location: str) -> bool:
+    """Fuzzy location match: equal, or one is a substring of the other."""
+    return query == location or query in location or location in query
+
+
 def can_serve(ride, pickup_name: str, dropoff_name: str) -> bool:
     pn = pickup_name.strip().lower()
     dn = dropoff_name.strip().lower()
@@ -38,50 +43,56 @@ def can_serve(ride, pickup_name: str, dropoff_name: str) -> bool:
 
     if pn == dn:
         return False
-    if pn == end:
+    if _loc_match(pn, end) and not _loc_match(pn, start):
         return False
-    if dn == start:
+    if _loc_match(dn, start) and not _loc_match(dn, end):
         return False
-    if pn == start and dn in route:
+
+    pickup_on_route = any(_loc_match(pn, r) for r in route)
+    dropoff_on_route = any(_loc_match(dn, r) for r in route)
+
+    if _loc_match(pn, start) and dropoff_on_route:
         return True
-    if dn == end and pn in route:
+    if _loc_match(dn, end) and pickup_on_route:
         return True
     intermediate = route[1:-1]
-    if pn in intermediate and dn in intermediate:
+    if any(_loc_match(pn, r) for r in intermediate) and any(_loc_match(dn, r) for r in intermediate):
         return True
     return False
 
 
-def find_best_carpool(pickup_name: str, dropoff_name: str, date_str: str, time_str: str):
-    from datetime import timedelta
+def find_carpools(pickup_name: str, dropoff_name: str, date_str: str, time_str: str):
     naive_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
     dt = timezone.make_aware(naive_dt)
 
-    # Search rides departing from the requested time up to 3 hours later
+    # Search from the requested time to the end of the requested day so rides
+    # are found regardless of which hour the agent defaults to when no time is given.
+    end_of_day = timezone.make_aware(datetime.strptime(f"{date_str} 23:59", "%Y-%m-%d %H:%M"))
+    upper = end_of_day if end_of_day > dt else dt
+
     rides = Ride.objects.filter(
         departure_time__gte=dt,
-        departure_time__lt=dt + timedelta(hours=3),
+        departure_time__lte=upper,
         available_seats__gte=1,
         status__in=['pending', 'confirmed'],
     )
 
     matches = [r for r in rides if can_serve(r, pickup_name, dropoff_name)]
-    matches.sort(key=lambda r: (r.departure_time, r.seat_price, r.id))
+    matches.sort(key=lambda r: (r.seat_price, r.departure_time, r.id))
 
-    if not matches:
-        return None
-
-    ride = matches[0]
-    driver_name = ride.driver.get_full_name() or ride.driver.username
-    return {
-        'id': ride.id,
-        'driver_name': driver_name,
-        'start_location': ride.start_location,
-        'end_location': ride.end_location,
-        'departure_time': ride.departure_time.isoformat(),
-        'seat_price': str(ride.seat_price),
-        'available_seats': ride.available_seats,
-    }
+    results = []
+    for ride in matches:
+        driver_name = ride.driver.get_full_name() or ride.driver.username
+        results.append({
+            'id': ride.id,
+            'driver_name': driver_name,
+            'start_location': ride.start_location,
+            'end_location': ride.end_location,
+            'departure_time': ride.departure_time.isoformat(),
+            'seat_price': str(ride.seat_price),
+            'available_seats': ride.available_seats,
+        })
+    return results
 
 
 def find_buses(pickup_name: str, dropoff_name: str, time_str: str = None) -> list:
@@ -188,10 +199,21 @@ def find_departures_at_stop(stop_name: str, time_str: str = None) -> list:
         key = s.bus_id
         if key not in seen:
             seen.add(key)
+            # Find this bus's final stop (highest arrival_time) so the agent can
+            # write the full BUS FORMAT even when there's no direct connection.
+            last = (
+                BusSchedule.objects
+                .filter(bus=s.bus)
+                .order_by('-arrival_time')
+                .select_related('stop')
+                .first()
+            )
             results.append({
                 'bus_name': s.bus.name,
                 'stop_name': s.stop.name,
                 'departure_time': s.arrival_time.strftime('%H:%M'),
+                'end_stop': last.stop.name if last else '',
+                'end_time': last.arrival_time.strftime('%H:%M') if last else '',
             })
         if len(results) >= 6:
             break

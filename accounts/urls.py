@@ -11,6 +11,7 @@ urlpatterns = [
     path('join-community/', views.join_community, name='join_community'),
     path('profile/', views.profile_view, name='profile'),
     path('ride-history/', views.ride_history_view, name='ride_history'),
+    path('delete-ride/<int:ride_id>/', views.delete_ride, name='delete_ride'),
     path('confirm-ride/<int:booking_id>/', views.confirm_ride, name='confirm_ride'),
     path('decline-ride/<int:booking_id>/', views.decline_ride, name='decline_ride'),
     path('start-ride/<int:booking_id>/', views.start_ride, name='start_ride'),

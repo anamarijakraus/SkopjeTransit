@@ -16,6 +16,8 @@ def create_ride(request):
         if form.is_valid():
             ride = form.save(commit=False)
             ride.driver = request.user
+            ride.start_location = ride.start_location.strip().title()
+            ride.end_location = ride.end_location.strip().title()
             ride.save()
             form.save_m2m()
             return redirect('accounts:profile')
